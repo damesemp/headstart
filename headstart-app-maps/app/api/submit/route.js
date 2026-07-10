@@ -1,21 +1,16 @@
-import { airtableFetch, TABLES, FIELDS } from "../../lib/airtable";
+import { airtableFetch, TABLES } from "../../lib/airtable";
 
 export async function POST(request) {
   const body = await request.json();
-  const { manufacturerId, keyProduct, usedInId, proposedNewArea, whyThisFits, submittedBy } =
-    body || {};
+  const { manufacturerId, keyProduct, usedInId, proposedNewArea, whyThisFits } = body || {};
 
   const hasUsedIn = usedInId || (proposedNewArea && proposedNewArea.trim());
 
-  if (!manufacturerId || !keyProduct || !hasUsedIn || !whyThisFits || !submittedBy) {
-    return Response.json(
-      { error: "All fields are required." },
-      { status: 400 }
-    );
+  if (!manufacturerId || !keyProduct || !hasUsedIn || !whyThisFits) {
+    return Response.json({ error: "All fields are required." }, { status: 400 });
   }
 
   const fields = {
-    "Submitted By": submittedBy,
     Manufacturer: [manufacturerId],
     "Key Product": keyProduct,
     "Why This Fits": whyThisFits,
@@ -28,15 +23,10 @@ export async function POST(request) {
     fields["Proposed New Application Area"] = proposedNewArea.trim();
   }
 
-  const record = { fields };
-
-  const data = await airtableFetch(
-    `/${TABLES.APPLICATION_MAP_REQUESTS}`,
-    {
-      method: "POST",
-      body: JSON.stringify({ records: [record] }),
-    }
-  );
+  const data = await airtableFetch(`/${TABLES.APPLICATION_MAP_REQUESTS}`, {
+    method: "POST",
+    body: JSON.stringify({ records: [{ fields }] }),
+  });
 
   return Response.json({ ok: true, id: data.records?.[0]?.id });
 }
