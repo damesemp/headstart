@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { REFERENCE_DATA } from "../../lib/reference-data";
+import { REFERENCE_DATA } from "../lib/reference-data";
 
 const styles = {
   page: { background: "#efeeec", padding: "40px 16px", minHeight: "100vh" },
