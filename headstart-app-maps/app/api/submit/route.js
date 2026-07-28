@@ -1,32 +1,39 @@
-import { airtableFetch, TABLES } from "../../lib/airtable";
+// GET /api/mapped-for-manufacturer?name=SynQor
+// Returns existing Application Map Requests entries for a given manufacturer
+// name, so the form can show "already mapped" state.
 
-export async function POST(request) {
-  const body = await request.json();
-  const { manufacturerId, keyProduct, usedInId, proposedNewArea, whyThisFits } = body || {};
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const name = searchParams.get("name");
 
-  const hasUsedIn = usedInId || (proposedNewArea && proposedNewArea.trim());
-
-  if (!manufacturerId || !keyProduct || !hasUsedIn || !whyThisFits) {
-    return Response.json({ error: "All fields are required." }, { status: 400 });
+  if (!name) {
+    return Response.json({ error: "Missing manufacturer name" }, { status: 400 });
   }
 
-  const fields = {
-    Manufacturer: [manufacturerId],
-    "Key Product": keyProduct,
-    "Why This Fits": whyThisFits,
-    Status: "Needs Review",
-  };
+  const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_ID } = process.env;
 
-  if (usedInId) {
-    fields["Used In"] = [usedInId];
-  } else {
-    fields["Proposed New Application Area"] = proposedNewArea.trim();
+  try {
+    const pendingRes = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(
+        `FIND("${name}", ARRAYJOIN({Manufacturer}))`
+      )}`,
+      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+    );
+    const pendingData = await pendingRes.json();
+
+    const pending = (pendingData.records || []).map((r) => {
+      const rawStatus = r.fields["Status"] || "Needs Review";
+      let status = "Pending";
+      if (rawStatus === "Converted to Application Mapping") status = "Promoted";
+      if (rawStatus === "Rejected") status = "Rejected";
+      return {
+        product: r.fields["Key Product"] || "(unnamed)",
+        status
+      };
+    });
+
+    return Response.json(pending);
+  } catch (err) {
+    return Response.json({ error: "Server error", detail: err.message }, { status: 500 });
   }
-
-  const data = await airtableFetch(`/${TABLES.APPLICATION_MAP_REQUESTS}`, {
-    method: "POST",
-    body: JSON.stringify({ records: [{ fields }] }),
-  });
-
-  return Response.json({ ok: true, id: data.records?.[0]?.id });
 }
