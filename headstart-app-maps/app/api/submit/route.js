@@ -1,38 +1,70 @@
-// GET /api/mapped-for-manufacturer?name=SynQor
-// Returns existing Application Map Requests entries for a given manufacturer
-// name, so the form can show "already mapped" state.
+// POST /api/submit
+// Body: { manufacturer, product, typeIds, areaIds, whyFits }
+// Requires env vars (set in Vercel project settings — never in client code):
+//   AIRTABLE_API_KEY
+//   AIRTABLE_BASE_ID                  e.g. app2N1SillR5AqtSC
+//   AIRTABLE_TABLE_ID                 Application Map Requests -> tbltYrKYfGVkWwdR1
+//   AIRTABLE_MANUFACTURERS_TABLE_ID   Manufacturers -> tblPus2aWrpNy5pwB
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const name = searchParams.get("name");
+export async function POST(request) {
+  const body = await request.json();
+  const { manufacturer, product, typeIds, areaIds, whyFits } = body || {};
 
-  if (!name) {
-    return Response.json({ error: "Missing manufacturer name" }, { status: 400 });
+  if (!manufacturer || !product || !Array.isArray(typeIds) || !Array.isArray(areaIds)) {
+    return Response.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_ID } = process.env;
+  const {
+    AIRTABLE_API_KEY,
+    AIRTABLE_BASE_ID,
+    AIRTABLE_TABLE_ID,
+    AIRTABLE_MANUFACTURERS_TABLE_ID
+  } = process.env;
 
   try {
-    const pendingRes = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(
-        `FIND("${name}", ARRAYJOIN({Manufacturer}))`
-      )}`,
+    // 1. Resolve the manufacturer name to its Airtable record id.
+    const mfrSearch = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_MANUFACTURERS_TABLE_ID}?filterByFormula=${encodeURIComponent(
+        `{Manufacturer}="${manufacturer}"`
+      )}&maxRecords=1`,
       { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
     );
-    const pendingData = await pendingRes.json();
+    const mfrData = await mfrSearch.json();
+    const mfrRecordId = mfrData.records && mfrData.records[0] && mfrData.records[0].id;
 
-    const pending = (pendingData.records || []).map((r) => {
-      const rawStatus = r.fields["Status"] || "Needs Review";
-      let status = "Pending";
-      if (rawStatus === "Converted to Application Mapping") status = "Promoted";
-      if (rawStatus === "Rejected") status = "Rejected";
-      return {
-        product: r.fields["Key Product"] || "(unnamed)",
-        status
-      };
-    });
+    if (!mfrRecordId) {
+      return Response.json({ error: "Manufacturer not found" }, { status: 400 });
+    }
 
-    return Response.json(pending);
+    // 2. Create the Application Map Requests record.
+    const createRes = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: {
+            Manufacturer: [mfrRecordId],
+            "Key Product": product,
+            Type: typeIds,
+            "Used In": areaIds,
+            "Why This Fits": whyFits || "",
+            Status: "Needs Review"
+          }
+        })
+      }
+    );
+
+    if (!createRes.ok) {
+      const errBody = await createRes.text();
+      return Response.json({ error: "Airtable create failed", detail: errBody }, { status: 502 });
+    }
+
+    const created = await createRes.json();
+    return Response.json({ ok: true, id: created.id });
   } catch (err) {
     return Response.json({ error: "Server error", detail: err.message }, { status: 500 });
   }
