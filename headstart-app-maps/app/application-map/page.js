@@ -610,6 +610,23 @@ export default function ApplicationMapPage() {
                   </option>
                 ))}
               </select>
+              {segment && refData.segmentDiagramStatus && refData.segmentDiagramStatus[segment] === false && (
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#7a5108",
+                    background: "#faf1de",
+                    border: "1px solid #f0dcae",
+                    borderRadius: 8,
+                    padding: "8px 12px",
+                    margin: "8px 0 0",
+                    lineHeight: 1.4
+                  }}
+                >
+                  Awaiting diagram — this segment doesn&apos;t have a visual model in the Applications
+                  Engine yet. Your submission will still be saved and will appear once one is built.
+                </p>
+              )}
             </div>
 
             <MultiPicker
