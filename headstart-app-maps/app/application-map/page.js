@@ -312,7 +312,7 @@ export default function ApplicationMapPage() {
   const [segment, setSegment] = useState(null);
 
   useEffect(() => {
-    fetch("/api/reference-data")
+    fetch("/api/reference-data", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load reference data");
         return res.json();
