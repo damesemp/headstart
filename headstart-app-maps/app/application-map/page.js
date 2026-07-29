@@ -256,7 +256,7 @@ function badgeStyle(status) {
   return { background: "#faf1de", color: "#7a5108" };
 }
 
-function MultiPicker({ label, hint, placeholder, options, selected, onAdd, onRemove }) {
+function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -266,9 +266,7 @@ function MultiPicker({ label, hint, placeholder, options, selected, onAdd, onRem
 
   return (
     <div style={styles.field}>
-      <label style={styles.label}>
-        {label} <span style={styles.hint}>{hint}</span>
-      </label>
+      <label style={styles.label}>{label}</label>
       <input
         style={styles.input}
         type="text"
@@ -546,6 +544,9 @@ export default function ApplicationMapPage() {
           </div>
 
           <div style={styles.body}>
+            <p style={{ fontSize: 13, color: "#5b5952", margin: "0 0 22px", lineHeight: 1.5 }}>
+              Select Industry, Segment and Type, then add the Application area, Manufacturer and product details below.
+            </p>
             <div style={styles.field}>
               <label style={styles.label}>Industry</label>
               <select
@@ -582,8 +583,7 @@ export default function ApplicationMapPage() {
 
             <MultiPicker
               label="Type"
-              hint="(select all that apply)"
-              placeholder="Search type, e.g. 'watch' or 'glasses'..."
+              placeholder="Search type — select all that apply, e.g. 'watch' or 'glasses'..."
               options={typeOptions}
               selected={typeIds}
               onAdd={(id) => setTypeIds((prev) => [...prev, id])}
@@ -592,8 +592,7 @@ export default function ApplicationMapPage() {
 
             <MultiPicker
               label="Application area"
-              hint="(select all that apply)"
-              placeholder="Type to search, e.g. 'radar' or 'battery'..."
+              placeholder="Search area — select all that apply, e.g. 'radar' or 'battery'..."
               options={areaOptions}
               selected={areaIds}
               onAdd={(id) => setAreaIds((prev) => [...prev, id])}
@@ -714,16 +713,11 @@ export default function ApplicationMapPage() {
             </div>
 
             <div style={styles.field}>
-              <label style={styles.label}>
-                Why this fits{" "}
-                <span style={styles.hint}>
-                  (one per line, max 5. specific to this product, not the manufacturer)
-                </span>
-              </label>
+              <label style={styles.label}>Why this fits</label>
               <textarea
                 style={styles.textarea}
                 placeholder={
-                  "e.g.\nLong-range InGaAs sensing suits low-light targeting\nRugged housing rated for shock and vibration"
+                  "One point per line, up to 5 — specific to this product, not the manufacturer.\ne.g. Long-range InGaAs sensing suits low-light targeting\nRugged housing rated for shock and vibration"
                 }
                 value={whyFits}
                 onChange={(e) => handleWhyFitsChange(e.target.value)}
