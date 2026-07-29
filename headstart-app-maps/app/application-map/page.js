@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { REFERENCE_DATA } from "../lib/reference-data";
+import { useState, useMemo, useEffect } from "react";
 
 const ACCENT = "#3EC2CF";
 const ACCENT_DARK = "#0d838d";
@@ -306,9 +305,28 @@ function MultiPicker({ label, hint, placeholder, options, selected, onAdd, onRem
 }
 
 export default function ApplicationMapPage() {
-  const [industry, setIndustry] = useState(REFERENCE_DATA.industries[0]);
-  const segments = REFERENCE_DATA.segments[industry] || [];
-  const [segment, setSegment] = useState(segments[0] || null);
+  const [refData, setRefData] = useState(null);
+  const [refError, setRefError] = useState(null);
+
+  const [industry, setIndustry] = useState(null);
+  const [segment, setSegment] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/reference-data")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load reference data");
+        return res.json();
+      })
+      .then((data) => {
+        setRefData(data);
+        const firstIndustry = data.industries[0] || null;
+        setIndustry(firstIndustry);
+        setSegment((data.segments[firstIndustry] || [])[0] || null);
+      })
+      .catch((err) => setRefError(err.message));
+  }, []);
+
+  const segments = refData ? refData.segments[industry] || [] : [];
 
   const [typeIds, setTypeIds] = useState([]);
   const [areaIds, setAreaIds] = useState([]);
@@ -329,33 +347,37 @@ export default function ApplicationMapPage() {
 
   const typeOptions = useMemo(
     () =>
-      REFERENCE_DATA.types
-        .filter((t) => t.segment === segment)
-        .map((t) => ({ id: t.id, label: t.name })),
-    [segment]
+      refData
+        ? refData.types
+            .filter((t) => t.segment === segment)
+            .map((t) => ({ id: t.id, label: t.name }))
+        : [],
+    [refData, segment]
   );
 
   const areaOptions = useMemo(
     () =>
-      REFERENCE_DATA.applicationAreas
-        .filter((a) => a.segment === segment)
-        .filter((a) => typeIds.length === 0 || a.relevantTypes.some((t) => typeIds.includes(t)))
-        .map((a) => ({ id: a.id, label: a.label })),
-    [segment, typeIds]
+      refData
+        ? refData.applicationAreas
+            .filter((a) => a.segment === segment)
+            .filter((a) => typeIds.length === 0 || a.relevantTypes.some((t) => typeIds.includes(t)))
+            .map((a) => ({ id: a.id, label: a.label }))
+        : [],
+    [refData, segment, typeIds]
   );
 
-  const mfrMatches = REFERENCE_DATA.manufacturers.filter((m) =>
-    m.name.toLowerCase().includes(mfrQuery.toLowerCase())
-  );
+  const mfrMatches = refData
+    ? refData.manufacturers.filter((m) => m.name.toLowerCase().includes(mfrQuery.toLowerCase()))
+    : [];
 
-  const currentMfr = REFERENCE_DATA.manufacturers.find((m) => m.name === manufacturer);
+  const currentMfr = refData ? refData.manufacturers.find((m) => m.name === manufacturer) : null;
   const productMatches = currentMfr
     ? currentMfr.products.filter((p) => p.toLowerCase().includes(productQuery.toLowerCase()))
     : [];
 
   function handleIndustryChange(value) {
     setIndustry(value);
-    const segs = REFERENCE_DATA.segments[value] || [];
+    const segs = (refData && refData.segments[value]) || [];
     setSegment(segs[0] || null);
     setTypeIds([]);
     setAreaIds([]);
@@ -461,6 +483,28 @@ export default function ApplicationMapPage() {
     }
   }
 
+  if (refError) {
+    return (
+      <div style={styles.page}>
+        <div style={{ ...styles.card, maxWidth: 640, margin: "0 auto", padding: "2rem" }}>
+          <p style={{ color: "#a32d2d", fontSize: 14 }}>
+            Couldn&apos;t load form data. Refresh the page to try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!refData) {
+    return (
+      <div style={styles.page}>
+        <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center", padding: "4rem 0", color: "#8a8880" }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.page}>
       <div style={{ maxWidth: 640, margin: "0 auto", position: "relative" }}>
@@ -476,10 +520,10 @@ export default function ApplicationMapPage() {
               <label style={styles.label}>Industry</label>
               <select
                 style={styles.input}
-                value={industry}
+                value={industry || ""}
                 onChange={(e) => handleIndustryChange(e.target.value)}
               >
-                {REFERENCE_DATA.industries.map((i) => (
+                {refData.industries.map((i) => (
                   <option key={i} value={i}>
                     {i}
                   </option>
