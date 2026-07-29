@@ -8,10 +8,13 @@
 
 export async function POST(request) {
   const body = await request.json();
-  const { manufacturer, product, typeIds, areaIds, whyFits } = body || {};
+  const { manufacturer, product, typeIds, areaIds, proposedArea, whyFits } = body || {};
 
   if (!manufacturer || !product || !Array.isArray(typeIds) || !Array.isArray(areaIds)) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
+  }
+  if (!areaIds.length && !proposedArea) {
+    return Response.json({ error: "Missing application area" }, { status: 400 });
   }
 
   const {
@@ -51,6 +54,7 @@ export async function POST(request) {
             "Key Product": product,
             Type: typeIds,
             "Used In": areaIds,
+            "Proposed New Application Area": proposedArea || "",
             "Why This Fits": whyFits || "",
             Status: "Needs Review"
           }
