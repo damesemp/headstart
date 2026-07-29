@@ -9,6 +9,7 @@ export const revalidate = 0;
 
 const TYPES_TABLE_ID = "tblJxyqfDeygPaEYD";
 const APPLICATION_AREAS_TABLE_ID = "tblZAviGraX2g9vO2";
+const SEGMENTS_TABLE_ID = "tbl0gAE9zJpNath0Q";
 
 async function airtableList(baseId, tableId, apiKey, params = "") {
   const records = [];
@@ -35,7 +36,7 @@ export async function GET() {
   const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_MANUFACTURERS_TABLE_ID } = process.env;
 
   try {
-    const [typeRecords, areaRecords, mfrRecords] = await Promise.all([
+    const [typeRecords, areaRecords, mfrRecords, segmentRecords] = await Promise.all([
       airtableList(AIRTABLE_BASE_ID, TYPES_TABLE_ID, AIRTABLE_API_KEY),
       airtableList(
         AIRTABLE_BASE_ID,
@@ -45,7 +46,8 @@ export async function GET() {
           '{Submission Status}="Open for submission"'
         )}`
       ),
-      airtableList(AIRTABLE_BASE_ID, AIRTABLE_MANUFACTURERS_TABLE_ID, AIRTABLE_API_KEY)
+      airtableList(AIRTABLE_BASE_ID, AIRTABLE_MANUFACTURERS_TABLE_ID, AIRTABLE_API_KEY),
+      airtableList(AIRTABLE_BASE_ID, SEGMENTS_TABLE_ID, AIRTABLE_API_KEY)
     ]);
 
     const types = typeRecords.map((r) => ({
@@ -74,6 +76,13 @@ export async function GET() {
       segments[industry] = [...segSet];
     });
 
+    const segmentDiagramStatus = {};
+    segmentRecords.forEach((r) => {
+      const name = r.fields["Segment Name"];
+      if (!name) return;
+      segmentDiagramStatus[name] = !!r.fields["Has Diagram"];
+    });
+
     const manufacturers = mfrRecords
       .map((r) => {
         const name = Array.isArray(r.fields["Manufacturer"])
@@ -94,7 +103,8 @@ export async function GET() {
       segments,
       types,
       applicationAreas,
-      manufacturers
+      manufacturers,
+      segmentDiagramStatus
     });
   } catch (err) {
     return Response.json({ error: "Server error", detail: err.message }, { status: 500 });
