@@ -3,15 +3,21 @@
 import { useState, useMemo } from "react";
 import { REFERENCE_DATA } from "../lib/reference-data";
 
+const ACCENT = "#3EC2CF";
+const ACCENT_DARK = "#0d838d";
+const INK = "#212120";
+const PAGE_BG = "#f4f3f0";
+
 const styles = {
-  page: { background: "#efeeec", padding: "40px 16px", minHeight: "100vh" },
+  page: { background: PAGE_BG, padding: "40px 16px", minHeight: "100vh" },
   card: {
     maxWidth: 640,
     margin: "0 auto",
-    background: "#141414",
+    background: "#ffffff",
     borderRadius: 16,
     overflow: "hidden",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+    border: "1px solid #e4e2dc",
     fontFamily:
       '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif'
   },
@@ -23,7 +29,7 @@ const styles = {
     gap: 16
   },
   logo: { fontWeight: 800, fontSize: 22, letterSpacing: 1, color: "#fff" },
-  divider: { width: 2, height: 22, background: "#e8791a" },
+  divider: { width: 2, height: 22, background: ACCENT },
   title: {
     fontWeight: 700,
     fontSize: 15,
@@ -31,30 +37,30 @@ const styles = {
     color: "#fff",
     textTransform: "uppercase"
   },
-  body: { padding: "26px 28px 30px", color: "#f2f2f0" },
+  body: { padding: "26px 28px 30px", color: INK },
   label: {
     display: "block",
     fontSize: 12,
     fontWeight: 700,
     letterSpacing: 0.6,
     textTransform: "uppercase",
-    color: "#f2f2f0",
+    color: INK,
     marginBottom: 8
   },
   hint: {
     textTransform: "none",
     fontWeight: 400,
-    color: "#6b6b66",
+    color: "#8a8880",
     letterSpacing: 0,
     fontSize: 12
   },
   field: { marginBottom: 20 },
   input: {
     width: "100%",
-    background: "#1b1b1b",
-    border: "1px solid #2b2b2b",
+    background: "#fff",
+    border: "1px solid #d8d6cf",
     borderRadius: 8,
-    color: "#f2f2f0",
+    color: INK,
     padding: "12px 14px",
     fontSize: 15,
     fontFamily: "inherit",
@@ -62,10 +68,10 @@ const styles = {
   },
   textarea: {
     width: "100%",
-    background: "#1b1b1b",
-    border: "1px solid #2b2b2b",
+    background: "#fff",
+    border: "1px solid #d8d6cf",
     borderRadius: 8,
-    color: "#f2f2f0",
+    color: INK,
     padding: "12px 14px",
     fontSize: 15,
     fontFamily: "inherit",
@@ -79,9 +85,9 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     gap: 8,
-    background: "#26241a",
-    color: "#e2c67a",
-    border: "1px solid #4a3f22",
+    background: "#e6f8fa",
+    color: "#0d5158",
+    border: "1px solid #b9ecf1",
     padding: "6px 10px 6px 12px",
     borderRadius: 999,
     fontSize: 13
@@ -89,35 +95,52 @@ const styles = {
   tagBtn: {
     background: "none",
     border: "none",
-    color: "#e2c67a",
+    color: "#0d5158",
     cursor: "pointer",
     fontSize: 15,
     lineHeight: 1,
     padding: 0
   },
   dropdown: {
-    border: "1px solid #2b2b2b",
+    border: "1px solid #d8d6cf",
     borderRadius: 8,
     marginTop: 6,
     maxHeight: 170,
     overflowY: "auto",
-    background: "#1b1b1b"
+    background: "#fff"
   },
   opt: { padding: "10px 14px", fontSize: 14, cursor: "pointer" },
-  empty: { padding: "10px 14px", fontSize: 13, color: "#6b6b66" },
-  dividerLine: { border: "none", borderTop: "1px solid #2b2b2b", margin: "26px 0" },
+  empty: { padding: "10px 14px", fontSize: 13, color: "#8a8880" },
+  dividerLine: { border: "none", borderTop: "1px solid #e4e2dc", margin: "26px 0" },
+  sectionLabelRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10
+  },
+  sectionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: "50%",
+    background: ACCENT,
+    flexShrink: 0
+  },
   sectionLabel: {
     fontSize: 12,
     fontWeight: 700,
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
     textTransform: "uppercase",
-    color: "#9a9a95",
-    marginBottom: 14
+    color: INK
+  },
+  sectionUnderline: {
+    border: "none",
+    borderTop: "1px solid #e4e2dc",
+    margin: "0 0 14px"
   },
   mappedBox: {
-    border: "1px solid #2b2b2b",
+    border: "1px solid #e4e2dc",
     borderRadius: 10,
-    background: "#1b1b1b",
+    background: "#fafaf8",
     maxHeight: 180,
     overflowY: "auto",
     marginBottom: 22
@@ -127,7 +150,7 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "14px 16px",
-    borderBottom: "1px solid #2b2b2b"
+    borderBottom: "1px solid #e4e2dc"
   },
   badge: {
     fontSize: 11,
@@ -142,29 +165,83 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     fontSize: 12,
-    color: "#6b6b66",
+    color: "#8a8880",
     marginBottom: 16
+  },
+  resetLink: {
+    color: "#5b5952",
+    textDecoration: "underline",
+    cursor: "pointer",
+    background: "none",
+    border: "none",
+    fontSize: 12,
+    padding: 0,
+    fontFamily: "inherit"
   },
   submitBtn: {
     width: "100%",
-    background: "transparent",
-    border: "1px solid #e8791a",
-    color: "#e8791a",
+    background: "#000",
+    border: "1px solid #000",
+    color: "#fff",
     fontWeight: 700,
     fontSize: 15,
     letterSpacing: 0.6,
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 999,
     cursor: "pointer",
     textTransform: "uppercase"
   },
-  statusMsg: { textAlign: "center", fontSize: 13, marginTop: 14, minHeight: 18 }
+  statusMsg: { textAlign: "center", fontSize: 13, marginTop: 14, minHeight: 18 },
+  confirmOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(33,33,32,0.55)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+    borderRadius: 16
+  },
+  confirmBox: {
+    background: "#fff",
+    borderRadius: 12,
+    padding: "20px 24px",
+    maxWidth: 320,
+    textAlign: "center",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.18)"
+  },
+  confirmActions: {
+    display: "flex",
+    gap: 10,
+    marginTop: 16,
+    justifyContent: "center"
+  },
+  confirmBtnDanger: {
+    background: "#000",
+    color: "#fff",
+    border: "none",
+    borderRadius: 999,
+    padding: "8px 18px",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer"
+  },
+  confirmBtnCancel: {
+    background: "#fff",
+    color: INK,
+    border: "1px solid #d8d6cf",
+    borderRadius: 999,
+    padding: "8px 18px",
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: "pointer"
+  }
 };
 
 function badgeStyle(status) {
-  if (status === "Promoted") return { background: "#0e2419", color: "#3fcf8e" };
-  if (status === "Rejected") return { background: "#2c1414", color: "#e05a5a" };
-  return { background: "#2c220d", color: "#d9a441" };
+  if (status === "Promoted") return { background: "#e1f5ee", color: "#085041" };
+  if (status === "Rejected") return { background: "#faecea", color: "#8a2c22" };
+  return { background: "#faf1de", color: "#7a5108" };
 }
 
 function MultiPicker({ label, hint, placeholder, options, selected, onAdd, onRemove }) {
@@ -248,6 +325,7 @@ export default function ApplicationMapPage() {
   const [whyFits, setWhyFits] = useState("");
   const [status, setStatus] = useState({ text: "", ok: null });
   const [submitting, setSubmitting] = useState(false);
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   const typeOptions = useMemo(
     () =>
@@ -317,7 +395,14 @@ export default function ApplicationMapPage() {
 
   const lineCount = whyFits.split("\n").filter((l) => l.trim() !== "").length;
 
-  function resetForm() {
+  const hasUnsavedInput =
+    !!manufacturer ||
+    !!productQuery.trim() ||
+    typeIds.length > 0 ||
+    areaIds.length > 0 ||
+    !!whyFits.trim();
+
+  function performReset() {
     setManufacturer(null);
     setMfrQuery("");
     setProductQuery("");
@@ -326,6 +411,15 @@ export default function ApplicationMapPage() {
     setAreaIds([]);
     setWhyFits("");
     setStatus({ text: "", ok: null });
+    setConfirmingReset(false);
+  }
+
+  function handleResetClick() {
+    if (hasUnsavedInput) {
+      setConfirmingReset(true);
+    } else {
+      performReset();
+    }
   }
 
   async function handleSubmit() {
@@ -359,9 +453,9 @@ export default function ApplicationMapPage() {
       });
       if (!res.ok) throw new Error("Request failed");
       setStatus({ text: "Submitted for review.", ok: true });
-      resetForm();
+      performReset();
     } catch {
-      setStatus({ text: "Couldn't submit — try again.", ok: false });
+      setStatus({ text: "Couldn't submit. Try again.", ok: false });
     } finally {
       setSubmitting(false);
     }
@@ -369,206 +463,242 @@ export default function ApplicationMapPage() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <span style={styles.logo}>ASTUTE</span>
-          <span style={styles.divider}></span>
-          <span style={styles.title}>Headstart Application Maps</span>
-        </div>
-
-        <div style={styles.body}>
-          <div style={styles.field}>
-            <label style={styles.label}>Industry</label>
-            <select
-              style={styles.input}
-              value={industry}
-              onChange={(e) => handleIndustryChange(e.target.value)}
-            >
-              {REFERENCE_DATA.industries.map((i) => (
-                <option key={i} value={i}>
-                  {i}
-                </option>
-              ))}
-            </select>
+      <div style={{ maxWidth: 640, margin: "0 auto", position: "relative" }}>
+        <div style={styles.card}>
+          <div style={styles.header}>
+            <span style={styles.logo}>ASTUTE</span>
+            <span style={styles.divider}></span>
+            <span style={styles.title}>Headstart Application Maps</span>
           </div>
 
-          <div style={styles.field}>
-            <label style={styles.label}>Segment</label>
-            <select
-              style={styles.input}
-              value={segment || ""}
-              onChange={(e) => handleSegmentChange(e.target.value)}
-            >
-              {segments.length ? (
-                segments.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+          <div style={styles.body}>
+            <div style={styles.field}>
+              <label style={styles.label}>Industry</label>
+              <select
+                style={styles.input}
+                value={industry}
+                onChange={(e) => handleIndustryChange(e.target.value)}
+              >
+                {REFERENCE_DATA.industries.map((i) => (
+                  <option key={i} value={i}>
+                    {i}
                   </option>
-                ))
-              ) : (
-                <option disabled>No open segments for this industry</option>
-              )}
-            </select>
-          </div>
-
-          <MultiPicker
-            label="Type"
-            hint="(select all that apply)"
-            placeholder="Search type, e.g. 'watch' or 'glasses'..."
-            options={typeOptions}
-            selected={typeIds}
-            onAdd={(id) => setTypeIds((prev) => [...prev, id])}
-            onRemove={(id) => setTypeIds((prev) => prev.filter((x) => x !== id))}
-          />
-
-          <MultiPicker
-            label="Application area"
-            hint="(select all that apply)"
-            placeholder="Type to search, e.g. 'radar' or 'battery'..."
-            options={areaOptions}
-            selected={areaIds}
-            onAdd={(id) => setAreaIds((prev) => [...prev, id])}
-            onRemove={(id) => setAreaIds((prev) => prev.filter((x) => x !== id))}
-          />
-
-          <hr style={styles.dividerLine} />
-
-          <div style={styles.field}>
-            <label style={styles.label}>Manufacturer</label>
-            <input
-              style={styles.input}
-              type="text"
-              placeholder="Search manufacturer, e.g. 'SynQor'..."
-              value={mfrQuery}
-              onFocus={() => setMfrOpen(true)}
-              onChange={(e) => {
-                setMfrQuery(e.target.value);
-                setManufacturer(null);
-                setMfrOpen(true);
-              }}
-            />
-            {mfrOpen && (
-              <div style={styles.dropdown}>
-                {mfrMatches.length ? (
-                  mfrMatches.slice(0, 50).map((m) => (
-                    <div key={m.name} style={styles.opt} onClick={() => selectManufacturer(m.name)}>
-                      {m.name}
-                    </div>
-                  ))
-                ) : (
-                  <div style={styles.empty}>No matches</div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {manufacturer && (
-            <>
-              <div style={styles.sectionLabel}>Already mapped for {manufacturer}</div>
-              <div style={styles.mappedBox}>
-                {mappedLoading ? (
-                  <div style={styles.mappedRow}>
-                    <span style={{ color: "#6b6b66", fontSize: 13 }}>Loading...</span>
-                  </div>
-                ) : mapped.length ? (
-                  mapped.map((r, i) => (
-                    <div style={styles.mappedRow} key={i}>
-                      <div>
-                        <div style={{ fontSize: 15 }}>{r.product}</div>
-                        <div style={{ fontSize: 12, color: "#6b6b66", marginTop: 2 }}>{r.status}</div>
-                      </div>
-                      <span style={{ ...styles.badge, ...badgeStyle(r.status) }}>{r.status}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div style={styles.mappedRow}>
-                    <span style={{ color: "#6b6b66", fontSize: 13 }}>
-                      Nothing mapped for this manufacturer yet.
-                    </span>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          <div style={styles.sectionLabel}>Add a new one</div>
-
-          <div style={styles.field}>
-            <label style={styles.label}>Key product</label>
-            <input
-              style={styles.input}
-              type="text"
-              placeholder={
-                manufacturer ? `Search ${manufacturer} products, or type new...` : "Select a manufacturer first"
-              }
-              disabled={!manufacturer}
-              value={productQuery}
-              onFocus={() => setProductOpen(true)}
-              onChange={(e) => {
-                setProductQuery(e.target.value);
-                setProductOpen(true);
-              }}
-            />
-            {productOpen && manufacturer && (
-              <div style={styles.dropdown}>
-                {productMatches.length ? (
-                  productMatches.map((p) => (
-                    <div
-                      key={p}
-                      style={styles.opt}
-                      onClick={() => {
-                        setProductQuery(p);
-                        setProductOpen(false);
-                      }}
-                    >
-                      {p}
-                    </div>
-                  ))
-                ) : (
-                  <div style={styles.empty}>No matches — type to add new</div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label}>
-              Why this fits{" "}
-              <span style={styles.hint}>
-                (one per line, max 5 — specific to this product, not the manufacturer)
-              </span>
-            </label>
-            <textarea
-              style={styles.textarea}
-              placeholder={
-                "e.g.\nLong-range InGaAs sensing suits low-light targeting\nRugged housing rated for shock and vibration"
-              }
-              value={whyFits}
-              onChange={(e) => handleWhyFitsChange(e.target.value)}
-            />
-          </div>
-
-          <div style={styles.footerRow}>
-            <span>{lineCount}/5 lines</span>
-            <a style={{ color: "#9a9a95", textDecoration: "underline", cursor: "pointer" }} onClick={resetForm}>
-              ↺ Reset form
-            </a>
-          </div>
-
-          <button style={styles.submitBtn} onClick={handleSubmit} disabled={submitting}>
-            Submit for review
-          </button>
-          {status.text && (
-            <div
-              style={{
-                ...styles.statusMsg,
-                color: status.ok === true ? "#3fcf8e" : status.ok === false ? "#e05a5a" : "#9a9a95"
-              }}
-            >
-              {status.text}
+                ))}
+              </select>
             </div>
-          )}
+
+            <div style={styles.field}>
+              <label style={styles.label}>Segment</label>
+              <select
+                style={styles.input}
+                value={segment || ""}
+                onChange={(e) => handleSegmentChange(e.target.value)}
+              >
+                {segments.length ? (
+                  segments.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No open segments for this industry</option>
+                )}
+              </select>
+            </div>
+
+            <MultiPicker
+              label="Type"
+              hint="(select all that apply)"
+              placeholder="Search type, e.g. 'watch' or 'glasses'..."
+              options={typeOptions}
+              selected={typeIds}
+              onAdd={(id) => setTypeIds((prev) => [...prev, id])}
+              onRemove={(id) => setTypeIds((prev) => prev.filter((x) => x !== id))}
+            />
+
+            <MultiPicker
+              label="Application area"
+              hint="(select all that apply)"
+              placeholder="Type to search, e.g. 'radar' or 'battery'..."
+              options={areaOptions}
+              selected={areaIds}
+              onAdd={(id) => setAreaIds((prev) => [...prev, id])}
+              onRemove={(id) => setAreaIds((prev) => prev.filter((x) => x !== id))}
+            />
+
+            <hr style={styles.dividerLine} />
+
+            <div style={styles.sectionLabelRow}>
+              <span style={styles.sectionDot}></span>
+              <span style={styles.sectionLabel}>Manufacturer</span>
+            </div>
+            <hr style={styles.sectionUnderline} />
+
+            <div style={styles.field}>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder="Search manufacturer, e.g. 'SynQor'..."
+                value={mfrQuery}
+                onFocus={() => setMfrOpen(true)}
+                onChange={(e) => {
+                  setMfrQuery(e.target.value);
+                  setManufacturer(null);
+                  setMfrOpen(true);
+                }}
+              />
+              {mfrOpen && (
+                <div style={styles.dropdown}>
+                  {mfrMatches.length ? (
+                    mfrMatches.slice(0, 50).map((m) => (
+                      <div key={m.name} style={styles.opt} onClick={() => selectManufacturer(m.name)}>
+                        {m.name}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={styles.empty}>No matches</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {manufacturer && (
+              <>
+                <div style={styles.sectionLabelRow}>
+                  <span style={styles.sectionDot}></span>
+                  <span style={styles.sectionLabel}>Already mapped for {manufacturer}</span>
+                </div>
+                <hr style={styles.sectionUnderline} />
+                <div style={styles.mappedBox}>
+                  {mappedLoading ? (
+                    <div style={styles.mappedRow}>
+                      <span style={{ color: "#8a8880", fontSize: 13 }}>Loading...</span>
+                    </div>
+                  ) : mapped.length ? (
+                    mapped.map((r, i) => (
+                      <div style={styles.mappedRow} key={i}>
+                        <div>
+                          <div style={{ fontSize: 15 }}>{r.product}</div>
+                          <div style={{ fontSize: 12, color: "#8a8880", marginTop: 2 }}>{r.status}</div>
+                        </div>
+                        <span style={{ ...styles.badge, ...badgeStyle(r.status) }}>{r.status}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={styles.mappedRow}>
+                      <span style={{ color: "#8a8880", fontSize: 13 }}>
+                        Nothing mapped for this manufacturer yet.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            <div style={styles.sectionLabelRow}>
+              <span style={styles.sectionDot}></span>
+              <span style={styles.sectionLabel}>Add a new one</span>
+            </div>
+            <hr style={styles.sectionUnderline} />
+
+            <div style={styles.field}>
+              <label style={styles.label}>Key product</label>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder={
+                  manufacturer ? `Search ${manufacturer} products, or type new...` : "Select a manufacturer first"
+                }
+                disabled={!manufacturer}
+                value={productQuery}
+                onFocus={() => setProductOpen(true)}
+                onChange={(e) => {
+                  setProductQuery(e.target.value);
+                  setProductOpen(true);
+                }}
+              />
+              {productOpen && manufacturer && (
+                <div style={styles.dropdown}>
+                  {productMatches.length ? (
+                    productMatches.map((p) => (
+                      <div
+                        key={p}
+                        style={styles.opt}
+                        onClick={() => {
+                          setProductQuery(p);
+                          setProductOpen(false);
+                        }}
+                      >
+                        {p}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={styles.empty}>No matches. Type to add new.</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div style={styles.field}>
+              <label style={styles.label}>
+                Why this fits{" "}
+                <span style={styles.hint}>
+                  (one per line, max 5. specific to this product, not the manufacturer)
+                </span>
+              </label>
+              <textarea
+                style={styles.textarea}
+                placeholder={
+                  "e.g.\nLong-range InGaAs sensing suits low-light targeting\nRugged housing rated for shock and vibration"
+                }
+                value={whyFits}
+                onChange={(e) => handleWhyFitsChange(e.target.value)}
+              />
+            </div>
+
+            <div style={styles.footerRow}>
+              <span>{lineCount}/5 lines</span>
+              <button style={styles.resetLink} onClick={handleResetClick}>
+                Reset form
+              </button>
+            </div>
+
+            <button style={styles.submitBtn} onClick={handleSubmit} disabled={submitting}>
+              Submit for review
+            </button>
+            {status.text && (
+              <div
+                style={{
+                  ...styles.statusMsg,
+                  color: status.ok === true ? "#0f6e56" : status.ok === false ? "#a32d2d" : "#5b5952"
+                }}
+              >
+                {status.text}
+              </div>
+            )}
+          </div>
         </div>
+
+        {confirmingReset && (
+          <div style={styles.confirmOverlay}>
+            <div style={styles.confirmBox}>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: INK }}>
+                Clear this form?
+              </p>
+              <p style={{ margin: "6px 0 0", fontSize: 13, color: "#8a8880" }}>
+                Everything you've entered will be lost.
+              </p>
+              <div style={styles.confirmActions}>
+                <button style={styles.confirmBtnCancel} onClick={() => setConfirmingReset(false)}>
+                  Cancel
+                </button>
+                <button style={styles.confirmBtnDanger} onClick={performReset}>
+                  Clear form
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
