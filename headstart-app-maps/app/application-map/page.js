@@ -110,33 +110,35 @@ const styles = {
     overflowY: "auto",
     background: "#fff"
   },
+  shortDropdown: {
+    border: "1px solid #d8d6cf",
+    borderRadius: 8,
+    marginTop: 6,
+    maxHeight: 120,
+    overflowY: "auto",
+    background: "#fff"
+  },
   opt: { padding: "10px 14px", fontSize: 14, cursor: "pointer" },
   empty: { padding: "10px 14px", fontSize: 13, color: "#8a8880" },
-  dividerLine: { border: "none", borderTop: "1px solid #e4e2dc", margin: "26px 0" },
-  sectionLabelRow: {
+  labelDotRow: {
     display: "flex",
     alignItems: "center",
     gap: 8,
-    marginBottom: 10
+    marginBottom: 8
   },
-  sectionDot: {
+  labelDot: {
     width: 8,
     height: 8,
     borderRadius: "50%",
     background: ACCENT,
     flexShrink: 0
   },
-  sectionLabel: {
+  labelDotText: {
     fontSize: 12,
     fontWeight: 700,
     letterSpacing: 0.6,
     textTransform: "uppercase",
     color: INK
-  },
-  sectionUnderline: {
-    border: "none",
-    borderTop: "1px solid #e4e2dc",
-    margin: "0 0 14px"
   },
   mappedBox: {
     border: "1px solid #e4e2dc",
@@ -258,7 +260,7 @@ function badgeStyle(status) {
   return { background: "#faf1de", color: "#7a5108" };
 }
 
-function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove, allowPropose, proposedValue, onPropose, onClearPropose }) {
+function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove, allowPropose, proposedValue, onPropose, onClearPropose, showLabel = true }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -268,7 +270,12 @@ function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove, a
 
   return (
     <div style={styles.field}>
-      <label style={styles.label}>{label}</label>
+      {showLabel && (
+        <div style={styles.labelDotRow}>
+          <span style={styles.labelDot}></span>
+          <span style={styles.labelDotText}>{label}</span>
+        </div>
+      )}
       <input
         style={styles.input}
         type="text"
@@ -305,7 +312,7 @@ function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove, a
         )}
       </div>
       {open && (
-        <div style={styles.dropdown}>
+        <div style={styles.shortDropdown}>
           {filtered.length ? (
             filtered.map((o) => (
               <div
@@ -493,8 +500,12 @@ export default function ApplicationMapPage() {
       setStatus({ text: "Enter a key product.", ok: false });
       return;
     }
-    if (!typeIds.length || (!areaIds.length && !proposedArea)) {
-      setStatus({ text: "Select at least one Type and one Application area.", ok: false });
+    if (!typeIds.length) {
+      setStatus({ text: "Select at least one Type.", ok: false });
+      return;
+    }
+    if (!areaIds.length && !proposedArea) {
+      setStatus({ text: "Select at least one Application area.", ok: false });
       return;
     }
 
@@ -603,11 +614,12 @@ export default function ApplicationMapPage() {
 
             <MultiPicker
               label="Type"
-              placeholder="Search type — select all that apply, e.g. 'watch' or 'glasses'..."
+              placeholder="Select type — search e.g. 'watch' or 'glasses'..."
               options={typeOptions}
               selected={typeIds}
               onAdd={(id) => setTypeIds((prev) => [...prev, id])}
               onRemove={(id) => setTypeIds((prev) => prev.filter((x) => x !== id))}
+              showLabel={false}
             />
 
             <MultiPicker
@@ -623,13 +635,10 @@ export default function ApplicationMapPage() {
               onClearPropose={() => setProposedArea("")}
             />
 
-            <hr style={styles.dividerLine} />
-
-            <div style={styles.sectionLabelRow}>
-              <span style={styles.sectionDot}></span>
-              <span style={styles.sectionLabel}>Manufacturer</span>
+            <div style={styles.labelDotRow}>
+              <span style={styles.labelDot}></span>
+              <span style={styles.labelDotText}>Manufacturer</span>
             </div>
-            <hr style={styles.sectionUnderline} />
 
             <div style={styles.field}>
               <input
@@ -661,11 +670,10 @@ export default function ApplicationMapPage() {
 
             {manufacturer && (
               <>
-                <div style={styles.sectionLabelRow}>
-                  <span style={styles.sectionDot}></span>
-                  <span style={styles.sectionLabel}>Already mapped for {manufacturer}</span>
+                <div style={styles.labelDotRow}>
+                  <span style={styles.labelDot}></span>
+                  <span style={styles.labelDotText}>Already mapped for {manufacturer}</span>
                 </div>
-                <hr style={styles.sectionUnderline} />
                 <div style={styles.mappedBox}>
                   {mappedLoading ? (
                     <div style={styles.mappedRow}>
@@ -693,7 +701,10 @@ export default function ApplicationMapPage() {
             )}
 
             <div style={styles.field}>
-              <label style={styles.label}>Key product</label>
+              <div style={styles.labelDotRow}>
+                <span style={styles.labelDot}></span>
+                <span style={styles.labelDotText}>Key product</span>
+              </div>
               <input
                 style={styles.input}
                 type="text"
@@ -731,7 +742,10 @@ export default function ApplicationMapPage() {
             </div>
 
             <div style={styles.field}>
-              <label style={styles.label}>Why this fits</label>
+              <div style={styles.labelDotRow}>
+                <span style={styles.labelDot}></span>
+                <span style={styles.labelDotText}>Why this fits</span>
+              </div>
               <textarea
                 style={styles.textarea}
                 placeholder={
