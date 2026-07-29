@@ -167,18 +167,31 @@ const styles = {
     color: "#8a8880",
     marginBottom: 16
   },
-  resetLink: {
-    color: "#5b5952",
-    textDecoration: "underline",
+  buttonRow: {
+    display: "flex",
+    gap: 10
+  },
+  resetBtn: {
+    flex: "0 0 auto",
+    background: "#fff",
+    border: "1px solid #d8d6cf",
+    color: INK,
+    fontWeight: 700,
+    fontSize: 15,
+    letterSpacing: 0.6,
+    padding: "15px 22px",
+    borderRadius: 999,
     cursor: "pointer",
-    background: "none",
-    border: "none",
+    textTransform: "uppercase"
+  },
+  dataFreshness: {
     fontSize: 12,
-    padding: 0,
-    fontFamily: "inherit"
+    color: "#8a8880",
+    textAlign: "right",
+    padding: "10px 28px 0"
   },
   submitBtn: {
-    width: "100%",
+    flex: 1,
     background: "#000",
     border: "1px solid #000",
     color: "#fff",
@@ -307,6 +320,7 @@ function MultiPicker({ label, hint, placeholder, options, selected, onAdd, onRem
 export default function ApplicationMapPage() {
   const [refData, setRefData] = useState(null);
   const [refError, setRefError] = useState(null);
+  const [lastLoadedAt, setLastLoadedAt] = useState(null);
 
   const [industry, setIndustry] = useState(null);
   const [segment, setSegment] = useState(null);
@@ -319,6 +333,7 @@ export default function ApplicationMapPage() {
       })
       .then((data) => {
         setRefData(data);
+        setLastLoadedAt(new Date());
         const firstIndustry = data.industries[0] || null;
         setIndustry(firstIndustry);
         setSegment((data.segments[firstIndustry] || [])[0] || null);
@@ -417,14 +432,23 @@ export default function ApplicationMapPage() {
 
   const lineCount = whyFits.split("\n").filter((l) => l.trim() !== "").length;
 
+  const defaultIndustry = (refData && refData.industries[0]) || null;
+  const defaultSegment =
+    (refData && (refData.segments[defaultIndustry] || [])[0]) || null;
+
   const hasUnsavedInput =
     !!manufacturer ||
     !!productQuery.trim() ||
     typeIds.length > 0 ||
     areaIds.length > 0 ||
-    !!whyFits.trim();
+    !!whyFits.trim() ||
+    industry !== defaultIndustry ||
+    segment !== defaultSegment;
 
   function performReset() {
+    const firstIndustry = (refData && refData.industries[0]) || null;
+    setIndustry(firstIndustry);
+    setSegment((refData && (refData.segments[firstIndustry] || [])[0]) || null);
     setManufacturer(null);
     setMfrQuery("");
     setProductQuery("");
@@ -508,6 +532,12 @@ export default function ApplicationMapPage() {
   return (
     <div style={styles.page}>
       <div style={{ maxWidth: 640, margin: "0 auto", position: "relative" }}>
+        {lastLoadedAt && (
+          <p style={{ fontSize: 12, color: "#8a8880", textAlign: "right", margin: "0 4px 8px" }}>
+            Data loaded at{" "}
+            {lastLoadedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
         <div style={styles.card}>
           <div style={styles.header}>
             <span style={styles.logo}>ASTUTE</span>
@@ -702,14 +732,16 @@ export default function ApplicationMapPage() {
 
             <div style={styles.footerRow}>
               <span>{lineCount}/5 lines</span>
-              <button style={styles.resetLink} onClick={handleResetClick}>
-                Reset form
-              </button>
             </div>
 
-            <button style={styles.submitBtn} onClick={handleSubmit} disabled={submitting}>
-              Submit for review
-            </button>
+            <div style={styles.buttonRow}>
+              <button style={styles.resetBtn} onClick={handleResetClick}>
+                Reset
+              </button>
+              <button style={styles.submitBtn} onClick={handleSubmit} disabled={submitting}>
+                Submit for review
+              </button>
+            </div>
             {status.text && (
               <div
                 style={{
