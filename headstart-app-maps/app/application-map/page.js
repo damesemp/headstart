@@ -56,6 +56,7 @@ const styles = {
   field: { marginBottom: 20 },
   input: {
     width: "100%",
+    boxSizing: "border-box",
     background: "#fff",
     border: "1px solid #d8d6cf",
     borderRadius: 8,
@@ -67,6 +68,7 @@ const styles = {
   },
   textarea: {
     width: "100%",
+    boxSizing: "border-box",
     background: "#fff",
     border: "1px solid #d8d6cf",
     borderRadius: 8,
@@ -256,7 +258,7 @@ function badgeStyle(status) {
   return { background: "#faf1de", color: "#7a5108" };
 }
 
-function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove }) {
+function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove, allowPropose, proposedValue, onPropose, onClearPropose }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -290,6 +292,17 @@ function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove })
             </span>
           );
         })}
+        {proposedValue && (
+          <span style={{ ...styles.tag, background: "#faf1de", color: "#7a5108", border: "1px solid #f0dcae" }}>
+            {proposedValue} (proposed)
+            <button
+              style={{ ...styles.tagBtn, color: "#7a5108" }}
+              onClick={onClearPropose}
+            >
+              &times;
+            </button>
+          </span>
+        )}
       </div>
       {open && (
         <div style={styles.dropdown}>
@@ -306,6 +319,17 @@ function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove })
                 {o.label}
               </div>
             ))
+          ) : allowPropose && query.trim() ? (
+            <div
+              style={{ ...styles.opt, color: "#0d838d", fontWeight: 500 }}
+              onClick={() => {
+                onPropose(query.trim());
+                setQuery("");
+                setOpen(false);
+              }}
+            >
+              Propose a new application area: &quot;{query.trim()}&quot;
+            </div>
           ) : (
             <div style={styles.empty}>No matches</div>
           )}
@@ -332,9 +356,6 @@ export default function ApplicationMapPage() {
       .then((data) => {
         setRefData(data);
         setLastLoadedAt(new Date());
-        const firstIndustry = data.industries[0] || null;
-        setIndustry(firstIndustry);
-        setSegment((data.segments[firstIndustry] || [])[0] || null);
       })
       .catch((err) => setRefError(err.message));
   }, []);
@@ -343,6 +364,7 @@ export default function ApplicationMapPage() {
 
   const [typeIds, setTypeIds] = useState([]);
   const [areaIds, setAreaIds] = useState([]);
+  const [proposedArea, setProposedArea] = useState("");
 
   const [mfrQuery, setMfrQuery] = useState("");
   const [mfrOpen, setMfrOpen] = useState(false);
@@ -390,8 +412,7 @@ export default function ApplicationMapPage() {
 
   function handleIndustryChange(value) {
     setIndustry(value);
-    const segs = (refData && refData.segments[value]) || [];
-    setSegment(segs[0] || null);
+    setSegment(null);
     setTypeIds([]);
     setAreaIds([]);
   }
@@ -430,29 +451,26 @@ export default function ApplicationMapPage() {
 
   const lineCount = whyFits.split("\n").filter((l) => l.trim() !== "").length;
 
-  const defaultIndustry = (refData && refData.industries[0]) || null;
-  const defaultSegment =
-    (refData && (refData.segments[defaultIndustry] || [])[0]) || null;
-
   const hasUnsavedInput =
     !!manufacturer ||
     !!productQuery.trim() ||
     typeIds.length > 0 ||
     areaIds.length > 0 ||
     !!whyFits.trim() ||
-    industry !== defaultIndustry ||
-    segment !== defaultSegment;
+    !!proposedArea ||
+    !!industry ||
+    !!segment;
 
   function performReset() {
-    const firstIndustry = (refData && refData.industries[0]) || null;
-    setIndustry(firstIndustry);
-    setSegment((refData && (refData.segments[firstIndustry] || [])[0]) || null);
+    setIndustry(null);
+    setSegment(null);
     setManufacturer(null);
     setMfrQuery("");
     setProductQuery("");
     setMapped([]);
     setTypeIds([]);
     setAreaIds([]);
+    setProposedArea("");
     setWhyFits("");
     setStatus({ text: "", ok: null });
     setConfirmingReset(false);
@@ -475,7 +493,7 @@ export default function ApplicationMapPage() {
       setStatus({ text: "Enter a key product.", ok: false });
       return;
     }
-    if (!typeIds.length || !areaIds.length) {
+    if (!typeIds.length || (!areaIds.length && !proposedArea)) {
       setStatus({ text: "Select at least one Type and one Application area.", ok: false });
       return;
     }
@@ -492,6 +510,7 @@ export default function ApplicationMapPage() {
           product: productQuery.trim(),
           typeIds,
           areaIds,
+          proposedArea: proposedArea || null,
           whyFits: whyFits.trim()
         })
       });
@@ -548,12 +567,14 @@ export default function ApplicationMapPage() {
               Select Industry, Segment and Type, then add the Application area, Manufacturer and product details below.
             </p>
             <div style={styles.field}>
-              <label style={styles.label}>Industry</label>
               <select
                 style={styles.input}
                 value={industry || ""}
                 onChange={(e) => handleIndustryChange(e.target.value)}
               >
+                <option value="" disabled>
+                  Select industry
+                </option>
                 {refData.industries.map((i) => (
                   <option key={i} value={i}>
                     {i}
@@ -563,21 +584,20 @@ export default function ApplicationMapPage() {
             </div>
 
             <div style={styles.field}>
-              <label style={styles.label}>Segment</label>
               <select
                 style={styles.input}
                 value={segment || ""}
                 onChange={(e) => handleSegmentChange(e.target.value)}
+                disabled={!industry}
               >
-                {segments.length ? (
-                  segments.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No open segments for this industry</option>
-                )}
+                <option value="" disabled>
+                  Select segment
+                </option>
+                {segments.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -597,6 +617,10 @@ export default function ApplicationMapPage() {
               selected={areaIds}
               onAdd={(id) => setAreaIds((prev) => [...prev, id])}
               onRemove={(id) => setAreaIds((prev) => prev.filter((x) => x !== id))}
+              allowPropose
+              proposedValue={proposedArea}
+              onPropose={(value) => setProposedArea(value)}
+              onClearPropose={() => setProposedArea("")}
             />
 
             <hr style={styles.dividerLine} />
@@ -667,12 +691,6 @@ export default function ApplicationMapPage() {
                 </div>
               </>
             )}
-
-            <div style={styles.sectionLabelRow}>
-              <span style={styles.sectionDot}></span>
-              <span style={styles.sectionLabel}>Add a new one</span>
-            </div>
-            <hr style={styles.sectionUnderline} />
 
             <div style={styles.field}>
               <label style={styles.label}>Key product</label>
