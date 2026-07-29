@@ -4,6 +4,9 @@
 // static REFERENCE_DATA object. The form calls this on page load instead of
 // importing a static file, so Airtable stays the single source of truth.
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const TYPES_TABLE_ID = "tblJxyqfDeygPaEYD";
 const APPLICATION_AREAS_TABLE_ID = "tblZAviGraX2g9vO2";
 
@@ -14,7 +17,10 @@ async function airtableList(baseId, tableId, apiKey, params = "") {
     const url = `https://api.airtable.com/v0/${baseId}/${tableId}?pageSize=100${params}${
       offset ? `&offset=${offset}` : ""
     }`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      cache: "no-store"
+    });
     if (!res.ok) {
       throw new Error(`Airtable fetch failed for ${tableId}: ${res.status}`);
     }
