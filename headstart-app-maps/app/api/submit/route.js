@@ -1,20 +1,33 @@
 // POST /api/submit
-// Body: { manufacturer, product, typeIds, areaIds, whyFits }
+// Body: { industry, segment, manufacturer, product, typeIds, areaIds, proposedArea, whyFits }
 // Requires env vars (set in Vercel project settings — never in client code):
 //   AIRTABLE_API_KEY
 //   AIRTABLE_BASE_ID                  e.g. app2N1SillR5AqtSC
 //   AIRTABLE_TABLE_ID                 Application Map Requests -> tbltYrKYfGVkWwdR1
 //   AIRTABLE_MANUFACTURERS_TABLE_ID   Manufacturers -> tblPus2aWrpNy5pwB
 
+// Airtable formula strings are double-quoted, so a name containing a quote or a
+// backslash would break — or alter — the query. Escape both before interpolating.
+function escapeFormulaValue(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 export async function POST(request) {
   const body = await request.json();
-  const { manufacturer, product, typeIds, areaIds, proposedArea, whyFits } = body || {};
+  const { industry, segment, manufacturer, product, typeIds, areaIds, proposedArea, whyFits } =
+    body || {};
 
   if (!manufacturer || !product || !Array.isArray(typeIds) || !Array.isArray(areaIds)) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
   }
+  if (!industry || !segment) {
+    return Response.json({ error: "Missing industry or segment" }, { status: 400 });
+  }
   if (!areaIds.length && !proposedArea) {
     return Response.json({ error: "Missing application area" }, { status: 400 });
+  }
+  if (!whyFits || !String(whyFits).trim()) {
+    return Response.json({ error: "Missing why this fits" }, { status: 400 });
   }
 
   const {
@@ -28,10 +41,16 @@ export async function POST(request) {
     // 1. Resolve the manufacturer name to its Airtable record id.
     const mfrSearch = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_MANUFACTURERS_TABLE_ID}?filterByFormula=${encodeURIComponent(
-        `{Manufacturer}="${manufacturer}"`
+        `{Manufacturer}="${escapeFormulaValue(manufacturer)}"`
       )}&maxRecords=1`,
       { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
     );
+    if (!mfrSearch.ok) {
+      return Response.json(
+        { error: "Couldn't reach Airtable. Try again shortly." },
+        { status: 502 }
+      );
+    }
     const mfrData = await mfrSearch.json();
     const mfrRecordId = mfrData.records && mfrData.records[0] && mfrData.records[0].id;
 
@@ -50,6 +69,8 @@ export async function POST(request) {
         },
         body: JSON.stringify({
           fields: {
+            Industry: industry,
+            Segment: segment,
             Manufacturer: [mfrRecordId],
             "Key Product": product,
             Type: typeIds,
@@ -64,12 +85,14 @@ export async function POST(request) {
 
     if (!createRes.ok) {
       const errBody = await createRes.text();
-      return Response.json({ error: "Airtable create failed", detail: errBody }, { status: 502 });
+      console.error("Airtable create failed:", createRes.status, errBody);
+      return Response.json({ error: "Couldn't save the submission." }, { status: 502 });
     }
 
     const created = await createRes.json();
     return Response.json({ ok: true, id: created.id });
   } catch (err) {
-    return Response.json({ error: "Server error", detail: err.message }, { status: 500 });
+    console.error("submit route error:", err);
+    return Response.json({ error: "Server error." }, { status: 500 });
   }
 }

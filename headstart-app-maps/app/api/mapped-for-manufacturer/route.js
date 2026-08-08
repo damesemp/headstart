@@ -1,6 +1,14 @@
 // GET /api/mapped-for-manufacturer?name=SynQor
 // Returns existing Application Map Requests entries for a given manufacturer
-// name, so the form can show "already mapped" state.
+// name, so the form can show "already mapped" state. Matches the manufacturer
+// name exactly and case-insensitively — a substring match used to show
+// "Amphenol Ltd" rows when "Amphenol" was selected.
+
+// Airtable formula strings are double-quoted, so escape quotes and backslashes
+// before interpolating a manufacturer name.
+function escapeFormulaValue(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -15,10 +23,15 @@ export async function GET(request) {
   try {
     const pendingRes = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(
-        `FIND("${name}", ARRAYJOIN({Manufacturer}))`
+        `LOWER(ARRAYJOIN({Manufacturer})) = "${escapeFormulaValue(name).toLowerCase()}"`
       )}`,
       { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
     );
+    if (!pendingRes.ok) {
+      const detail = await pendingRes.text();
+      console.error("mapped-for-manufacturer Airtable error:", pendingRes.status, detail);
+      return Response.json({ error: "Couldn't reach Airtable." }, { status: 502 });
+    }
     const pendingData = await pendingRes.json();
 
     const pending = (pendingData.records || []).map((r) => {
@@ -34,6 +47,7 @@ export async function GET(request) {
 
     return Response.json(pending);
   } catch (err) {
-    return Response.json({ error: "Server error", detail: err.message }, { status: 500 });
+    console.error("mapped-for-manufacturer error:", err);
+    return Response.json({ error: "Server error." }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 const ACCENT = "#3EC2CF";
 const ACCENT_DARK = "#0d838d";
@@ -430,20 +430,33 @@ export default function ApplicationMapPage() {
     setAreaIds([]);
   }
 
+  // Guards against two problems: picking manufacturers quickly could let an
+  // earlier response land last and show the wrong company's rows, and an
+  // Airtable failure used to render as "nothing mapped yet" rather than an error.
+  const mappedRequestRef = useRef(0);
+
   async function selectManufacturer(name) {
     setManufacturer(name);
     setMfrQuery(name);
     setMfrOpen(false);
     setProductQuery("");
     setMappedLoading(true);
+    const requestId = ++mappedRequestRef.current;
     try {
       const res = await fetch(`/api/mapped-for-manufacturer?name=${encodeURIComponent(name)}`);
+      if (requestId !== mappedRequestRef.current) return; // a newer pick has taken over
+      if (!res.ok) throw new Error("lookup failed");
       const data = await res.json();
-      setMapped(data);
+      setMapped(Array.isArray(data) ? data : []);
     } catch {
+      if (requestId !== mappedRequestRef.current) return;
       setMapped([]);
+      setStatus({
+        text: "Couldn't load what's already mapped for this manufacturer.",
+        ok: false
+      });
     } finally {
-      setMappedLoading(false);
+      if (requestId === mappedRequestRef.current) setMappedLoading(false);
     }
   }
 
@@ -468,18 +481,20 @@ export default function ApplicationMapPage() {
     !!industry ||
     !!segment;
 
-  function performReset(keepStatus) {
-    setIndustry(null);
-    setSegment(null);
-    setManufacturer(null);
-    setMfrQuery("");
+  function performReset(keepContext) {
+    if (!keepContext) {
+      setIndustry(null);
+      setSegment(null);
+      setManufacturer(null);
+      setMfrQuery("");
+      setMapped([]);
+    }
     setProductQuery("");
-    setMapped([]);
     setTypeIds([]);
     setAreaIds([]);
     setProposedArea("");
     setWhyFits("");
-    if (!keepStatus) setStatus({ text: "", ok: null });
+    if (!keepContext) setStatus({ text: "", ok: null });
     setConfirmingReset(false);
   }
 
@@ -492,6 +507,10 @@ export default function ApplicationMapPage() {
   }
 
   async function handleSubmit() {
+    if (!industry || !segment) {
+      setStatus({ text: "Choose an industry and segment first.", ok: false });
+      return;
+    }
     if (!manufacturer) {
       setStatus({ text: "Select a manufacturer first.", ok: false });
       return;
@@ -508,6 +527,10 @@ export default function ApplicationMapPage() {
       setStatus({ text: "Select at least one Application area.", ok: false });
       return;
     }
+    if (!whyFits.trim()) {
+      setStatus({ text: "Add at least one line under Why this fits.", ok: false });
+      return;
+    }
 
     setSubmitting(true);
     setStatus({ text: "Submitting...", ok: null });
@@ -517,6 +540,8 @@ export default function ApplicationMapPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          industry,
+          segment,
           manufacturer,
           product: productQuery.trim(),
           typeIds,
@@ -526,7 +551,10 @@ export default function ApplicationMapPage() {
         })
       });
       if (!res.ok) throw new Error("Request failed");
-      setStatus({ text: "Submitted for review. Add another above.", ok: true });
+      setStatus({
+        text: "Submitted for review. Manufacturer kept — add another product above.",
+        ok: true
+      });
       performReset(true);
     } catch {
       setStatus({ text: "Couldn't submit. Try again.", ok: false });
