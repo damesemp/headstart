@@ -468,7 +468,7 @@ export default function ApplicationMapPage() {
     !!industry ||
     !!segment;
 
-  function performReset() {
+  function performReset(keepStatus) {
     setIndustry(null);
     setSegment(null);
     setManufacturer(null);
@@ -479,7 +479,7 @@ export default function ApplicationMapPage() {
     setAreaIds([]);
     setProposedArea("");
     setWhyFits("");
-    setStatus({ text: "", ok: null });
+    if (!keepStatus) setStatus({ text: "", ok: null });
     setConfirmingReset(false);
   }
 
@@ -526,8 +526,8 @@ export default function ApplicationMapPage() {
         })
       });
       if (!res.ok) throw new Error("Request failed");
-      setStatus({ text: "Submitted for review.", ok: true });
-      performReset();
+      setStatus({ text: "Submitted for review. Add another above.", ok: true });
+      performReset(true);
     } catch {
       setStatus({ text: "Couldn't submit. Try again.", ok: false });
     } finally {

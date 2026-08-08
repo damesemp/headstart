@@ -1,8 +1,10 @@
 // GET /api/reference-data
-// Fetches Types, Application Areas (Submission Status = "Open for submission"
-// only), and Manufacturers live from Airtable, shaped exactly like the old
-// static REFERENCE_DATA object. The form calls this on page load instead of
-// importing a static file, so Airtable stays the single source of truth.
+// Fetches Segments, Types, Application Areas (Submission Status = "Open for
+// submission" only) and Manufacturers live from Airtable. The form calls this
+// on page load, so Airtable stays the single source of truth.
+//
+// Industries and segments come from the Segments table (56 segments across 14
+// industries). Application Areas supply only the area list.
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -63,25 +65,26 @@ export async function GET() {
       relevantTypes: r.fields["Relevant Types"] || []
     }));
 
-    const segmentsByIndustry = {};
-    areaRecords.forEach((r) => {
-      const industry = r.fields["Industry"];
-      const segment = r.fields["Segment"];
-      if (!industry || !segment) return;
-      if (!segmentsByIndustry[industry]) segmentsByIndustry[industry] = new Set();
-      segmentsByIndustry[industry].add(segment);
-    });
+    // Industries and segments come from the Segments table, which is the
+    // canonical list. They used to be derived from Application Areas, which
+    // meant any segment with no open area yet was invisible in the form.
     const segments = {};
-    Object.entries(segmentsByIndustry).forEach(([industry, segSet]) => {
-      segments[industry] = [...segSet];
-    });
-
     const segmentDiagramStatus = {};
     segmentRecords.forEach((r) => {
       const name = r.fields["Segment Name"];
       if (!name) return;
       segmentDiagramStatus[name] = !!r.fields["Has Diagram"];
+      const industry = Array.isArray(r.fields["Industry"])
+        ? r.fields["Industry"][0]
+        : r.fields["Industry"];
+      if (!industry) return;
+      if (!segments[industry]) segments[industry] = [];
+      if (!segments[industry].includes(name)) segments[industry].push(name);
     });
+    Object.keys(segments).forEach((k) =>
+      segments[k].sort((a, b) => a.localeCompare(b))
+    );
+    const industries = Object.keys(segments).sort((a, b) => a.localeCompare(b));
 
     const manufacturers = mfrRecords
       .map((r) => {
@@ -99,7 +102,7 @@ export async function GET() {
       .sort((a, b) => a.name.localeCompare(b.name));
 
     return Response.json({
-      industries: Object.keys(segments),
+      industries,
       segments,
       types,
       applicationAreas,
