@@ -500,7 +500,7 @@ export default function ApplicationMapPage() {
       setStatus({ text: "Enter a key product.", ok: false });
       return;
     }
-    if (!typeIds.length) {
+    if (typeOptions.length > 0 && !typeIds.length) {
       setStatus({ text: "Select at least one Type.", ok: false });
       return;
     }
@@ -629,15 +629,32 @@ export default function ApplicationMapPage() {
               )}
             </div>
 
-            <MultiPicker
-              label="Type"
-              placeholder="Select type — search e.g. 'watch' or 'glasses'..."
-              options={typeOptions}
-              selected={typeIds}
-              onAdd={(id) => setTypeIds((prev) => [...prev, id])}
-              onRemove={(id) => setTypeIds((prev) => prev.filter((x) => x !== id))}
-              showLabel={false}
-            />
+            {segment && typeOptions.length === 0 ? (
+              <div
+                style={{
+                  background: "#F4F7F8",
+                  border: "1px solid #D6E2E4",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 13,
+                  color: "#3B4A4C",
+                  marginBottom: 12
+                }}
+              >
+                No types listed for this segment yet — skip straight to the
+                application area. We&apos;ll add the type when we review it.
+              </div>
+            ) : (
+              <MultiPicker
+                label="Type"
+                placeholder="Select type — search e.g. 'watch' or 'glasses'..."
+                options={typeOptions}
+                selected={typeIds}
+                onAdd={(id) => setTypeIds((prev) => [...prev, id])}
+                onRemove={(id) => setTypeIds((prev) => prev.filter((x) => x !== id))}
+                showLabel={false}
+              />
+            )}
 
             <MultiPicker
               label="Application area"
