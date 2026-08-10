@@ -1,5 +1,5 @@
 // POST /api/submit
-// Body: { industry, segment, manufacturer, product, typeIds, areaIds, proposedArea, whyFits }
+// Body: { submittedBy, industry, segment, manufacturer, product, typeIds, areaIds, proposedArea, whyFits }
 // Requires env vars (set in Vercel project settings — never in client code):
 //   AIRTABLE_API_KEY
 //   AIRTABLE_BASE_ID                  e.g. app2N1SillR5AqtSC
@@ -14,9 +14,12 @@ function escapeFormulaValue(value) {
 
 export async function POST(request) {
   const body = await request.json();
-  const { industry, segment, manufacturer, product, typeIds, areaIds, proposedArea, whyFits } =
+  const { submittedBy, industry, segment, manufacturer, product, typeIds, areaIds, proposedArea, whyFits } =
     body || {};
 
+  if (!submittedBy || !String(submittedBy).trim()) {
+    return Response.json({ error: "Missing your name" }, { status: 400 });
+  }
   if (!manufacturer || !product || !Array.isArray(typeIds) || !Array.isArray(areaIds)) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -69,6 +72,7 @@ export async function POST(request) {
         },
         body: JSON.stringify({
           fields: {
+            "Submitted By": submittedBy,
             Industry: industry,
             Segment: segment,
             Manufacturer: [mfrRecordId],

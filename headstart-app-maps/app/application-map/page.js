@@ -351,6 +351,7 @@ export default function ApplicationMapPage() {
   const [refError, setRefError] = useState(null);
   const [lastLoadedAt, setLastLoadedAt] = useState(null);
 
+  const [submittedBy, setSubmittedBy] = useState("");
   const [industry, setIndustry] = useState(null);
   const [segment, setSegment] = useState(null);
 
@@ -507,6 +508,10 @@ export default function ApplicationMapPage() {
   }
 
   async function handleSubmit() {
+    if (!submittedBy.trim()) {
+      setStatus({ text: "Add your name first.", ok: false });
+      return;
+    }
     if (!industry || !segment) {
       setStatus({ text: "Choose an industry and segment first.", ok: false });
       return;
@@ -540,6 +545,7 @@ export default function ApplicationMapPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          submittedBy: submittedBy.trim(),
           industry,
           segment,
           manufacturer,
@@ -605,6 +611,15 @@ export default function ApplicationMapPage() {
             <p style={{ fontSize: 13, color: "#5b5952", margin: "0 0 22px", lineHeight: 1.5 }}>
               Select Industry, Segment and Type, then add the Application area, Manufacturer and product details below.
             </p>
+            <div style={styles.field}>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder="Your name"
+                value={submittedBy}
+                onChange={(e) => setSubmittedBy(e.target.value)}
+              />
+            </div>
             <div style={styles.field}>
               <select
                 style={styles.input}

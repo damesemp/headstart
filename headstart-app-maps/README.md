@@ -26,6 +26,19 @@ https://airtable.com/create/tokens
 See `.env.example`. Miss any of these and `/application-map` will sit on
 "Loading..." or show "Couldn't load form data".
 
+### Access control (optional but recommended)
+
+| Variable | Value | Used by |
+|---|---|---|
+| `BASIC_AUTH_USER` | a shared username, your choice | `middleware.js` |
+| `BASIC_AUTH_PASS` | a shared password, your choice | `middleware.js` |
+
+Setting both turns on a single HTTP Basic Auth prompt in front of the whole
+site — the form and every `/api/*` route. Leave either unset and the site
+behaves exactly as before (open). This is a stopgap, not real login: it's one
+shared credential for anyone with it, not per-BDM identity. See
+`middleware.js` for the full reasoning.
+
 ## Deploy
 
 1. `npm install -g vercel`
