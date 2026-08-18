@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORY_COLORS, PC_LAYOUT, PC_ATTACH } from "../lib/pcCategories";
 import ZoomPanStage from "./ZoomPanStage";
 import CardsPanel from "./CardsPanel";
@@ -14,11 +14,15 @@ import CardsPanel from "./CardsPanel";
 // hotspot click does elsewhere — not a separate link-out — per the nav
 // rearchitecture spec Section 8. Outbound website/PDF links render inside
 // that card via the existing ManufacturerLinks component.
-export default function EmbeddedPCMap({ data }) {
+export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManufacturer, resetSignal }) {
   const [anchor, setAnchor] = useState(null);
-  const [selectedManufacturer, setSelectedManufacturer] = useState(null);
   const [view, setView] = useState({ scale: 1, tx: 0, ty: 0 });
   const frameRef = useRef(null);
+
+  useEffect(() => {
+    setAnchor(null);
+    setView({ scale: 1, tx: 0, ty: 0 });
+  }, [resetSignal]);
 
   // Group every manufacturer by its real Linecard Category / Subcategory —
   // computed live, not a hardcoded subset. Keeps the full manufacturer
@@ -41,7 +45,7 @@ export default function EmbeddedPCMap({ data }) {
   const companions = anchor ? PC_ATTACH[anchor] || [] : [];
 
   function resetView() {
-    setSelectedManufacturer(null);
+    onSelectManufacturer(null);
     setAnchor(null);
   }
 
@@ -95,7 +99,7 @@ export default function EmbeddedPCMap({ data }) {
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedManufacturer(m);
+                          onSelectManufacturer(m);
                         }}
                       >
                         {m.name}
@@ -144,7 +148,10 @@ export default function EmbeddedPCMap({ data }) {
         </ZoomPanStage>
       </div>
 
-      <CardsPanel selection={selectedManufacturer ? { kind: "manufacturer", manufacturer: selectedManufacturer } : null} />
+      <CardsPanel
+        selection={selectedManufacturer ? { kind: "manufacturer", manufacturer: selectedManufacturer } : null}
+        onResetSelection={() => onSelectManufacturer(null)}
+      />
     </div>
   );
 }

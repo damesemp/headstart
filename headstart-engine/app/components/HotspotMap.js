@@ -50,6 +50,8 @@ export default function HotspotMap({
   variantImages,
   pendingHotspotId,
   onConsumedPending,
+  onHotspotSelectionChange,
+  resetSignal,
 }) {
   const [selectedHotspotId, setSelectedHotspotId] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -57,6 +59,12 @@ export default function HotspotMap({
   const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
   const [imgNatural, setImgNatural] = useState({ w: 0, h: 0 });
   const frameRef = useRef(null);
+
+  useEffect(() => {
+    setSelectedHotspotId(null);
+    setSelectedVariant(null);
+    setView({ scale: 1, tx: 0, ty: 0 });
+  }, [resetSignal]);
 
   useLayoutEffect(() => {
     if (!frameRef.current || typeof ResizeObserver === "undefined") return;
@@ -126,6 +134,7 @@ export default function HotspotMap({
 
   function selectHotspot(hotspotId) {
     setSelectedHotspotId(hotspotId);
+    onHotspotSelectionChange(hotspotId);
     const h = hotspotByHotspotId[hotspotId];
     // Measure the frame directly rather than trusting the ResizeObserver-fed
     // stageSize state — on a freshly-mounted map (e.g. landing here straight
@@ -157,20 +166,24 @@ export default function HotspotMap({
     }
     if (h.deviceVariant && h.deviceVariant !== activeVariant) {
       setSelectedVariant(h.deviceVariant);
+      return;
     }
+    if (!frameRef.current?.clientWidth || !frameRef.current?.clientHeight) return;
     selectHotspot(pendingHotspotId);
     onConsumedPending();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingHotspotId, hotspotByHotspotId, stageSize]);
+  }, [pendingHotspotId, hotspotByHotspotId, stageSize, activeVariant]);
 
   function chooseVariant(v) {
     setSelectedVariant(v);
     setSelectedHotspotId(null);
+    onHotspotSelectionChange(null);
     setView({ scale: 1, tx: 0, ty: 0 });
   }
 
   function resetView() {
     setSelectedHotspotId(null);
+    onHotspotSelectionChange(null);
   }
 
   const visibleHotspots = useMemo(() => {
@@ -267,6 +280,10 @@ export default function HotspotMap({
               }
             : null
         }
+        onResetSelection={() => {
+          setSelectedHotspotId(null);
+          onHotspotSelectionChange(null);
+        }}
       />
     </div>
   );

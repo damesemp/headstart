@@ -2,9 +2,8 @@
 
 // Outbound links for one manufacturer's card — website (always in Airtable),
 // featured link (optional), PDF (optional, permanent Vercel Blob URL).
-// Built into the Directory results here per HEADSTART_MASTER_HANDOVER.md
-// Step 3 ("also build the manufacturer card's outbound links here") and
-// reused on /manufacturers for the full manufacturer directory.
+// Shared by the live Airtable-driven cards panel for hotspot and Embedded
+// PC manufacturer selections.
 export default function ManufacturerLinks({ manufacturer }) {
   const links = [];
   if (manufacturer.website) {
@@ -23,11 +22,11 @@ export default function ManufacturerLinks({ manufacturer }) {
   if (!links.length) return null;
 
   return (
-    <div className="hs-dir-mlinks">
+    <div className="hs-card-links">
       {links.map((l) => (
         <a
           key={l.label + l.href}
-          className="hs-dir-mlink"
+          className="hs-card-link"
           href={l.href}
           target="_blank"
           rel="noreferrer noopener"

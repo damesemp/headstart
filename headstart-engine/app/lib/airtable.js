@@ -33,6 +33,7 @@ export const FIELDS = {
     SUBCATEGORY: "fldUXqgBTIsGtmfqv",
     SHORT_DESCRIPTION: "fldJfisC84i6FE9Ir",
     LONG_DESCRIPTION: "fldkYkeYbIDVa2SH4",
+    MANUFACTURER_HEADLINE: "fldbyKR0YrD7YQ3MV",
     KEY_PRODUCTS: "fldv07pjCmuPLj2vR",
     APPLICATIONS: "fldWD6406mCrIHYdi",
     INDUSTRIES: "fldOFAB8baamNgYkR",
@@ -44,6 +45,7 @@ export const FIELDS = {
     // Added for Step 4's right-hand panel ("Manufacturer Details" card) —
     // confirmed via live schema check 18 August 2026.
     CORE_ADVANTAGES: "fldW2pEdBboSh8ehd",
+    QUALITY_CERTIFICATIONS: "fldzHeJALNFwY7n29",
   },
   APPLICATION_MAPPING: {
     MAPPING_ID: "fldxjSmK4myWDLiyc",

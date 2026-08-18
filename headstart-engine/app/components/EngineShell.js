@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import DirectoryView from "./DirectoryView";
+import { useEffect, useState } from "react";
 import Flyout from "./Flyout";
 import SplashScreen from "./SplashScreen";
 import HotspotMap from "./HotspotMap";
@@ -38,17 +37,17 @@ const APP_TITLES = {
   "embedded-pc": "Embedded PC",
 };
 
-// Single-page shell — replaces the old page-per-application routing.
-// Directory and all four application maps live here as view state on one
-// URL, per the nav rearchitecture spec Section 2. The reference-data fetch
+// Single-page shell for the four application maps. The reference-data fetch
 // happens once here and is passed down, instead of every view fetching it
 // separately.
 export default function EngineShell() {
   const [state, setState] = useState({ status: "loading", data: null, error: null });
-  const [view, setView] = useState("directory");
+  const [view, setView] = useState("embedded-pc");
   const [flyoutOpen, setFlyoutOpen] = useState(false);
-  const [directoryResetKey, setDirectoryResetKey] = useState(0);
   const [pendingHotspotId, setPendingHotspotId] = useState(null);
+  const [urlHotspotId, setUrlHotspotId] = useState(null);
+  const [selectedManufacturer, setSelectedManufacturer] = useState(null);
+  const [resetSignal, setResetSignal] = useState(0);
   const [splashDismissed, setSplashDismissed] = useState(true); // avoid a flash before the session check runs
 
   useEffect(() => {
@@ -82,7 +81,10 @@ export default function EngineShell() {
     const hotspot = params.get("hotspot");
     if (app && APP_TITLES[app]) {
       setView(app);
-      if (hotspot) setPendingHotspotId(hotspot);
+      if (hotspot) {
+        setPendingHotspotId(hotspot);
+        setUrlHotspotId(hotspot);
+      }
     }
   }, []);
 
@@ -95,33 +97,39 @@ export default function EngineShell() {
   // routes) so the current view is shareable/bookmarkable.
   useEffect(() => {
     const params = new URLSearchParams();
-    if (view !== "directory") {
+    if (view !== "embedded-pc" || urlHotspotId) {
       params.set("app", view);
-      if (pendingHotspotId) params.set("hotspot", pendingHotspotId);
+      if (urlHotspotId) params.set("hotspot", urlHotspotId);
     }
     const qs = params.toString();
     const url = qs ? `/?${qs}` : "/";
     window.history.replaceState(null, "", url);
-  }, [view, pendingHotspotId]);
+  }, [view, urlHotspotId]);
 
-  function goToDirectory() {
-    setView("directory");
-    setFlyoutOpen(false);
-  }
-
-  function openMap(viewKey) {
-    setView(viewKey);
-    setFlyoutOpen(false);
-  }
-
-  function handleFlyoutGo({ view: viewKey, hotspotId }) {
+  function handleFlyoutGo({ view: viewKey, hotspotId, keepOpen = false }) {
     setView(viewKey);
     setPendingHotspotId(hotspotId || null);
+    setUrlHotspotId(hotspotId || null);
+    setSelectedManufacturer(null);
+    if (!keepOpen) setFlyoutOpen(false);
+  }
+
+  function handleFlyoutManufacturer(manufacturer) {
+    setView("embedded-pc");
+    setPendingHotspotId(null);
+    setUrlHotspotId(null);
+    setSelectedManufacturer(manufacturer);
     setFlyoutOpen(false);
   }
 
-  function resetDirectory() {
-    setDirectoryResetKey((k) => k + 1);
+  function resetAll() {
+    setView("embedded-pc");
+    setPendingHotspotId(null);
+    setUrlHotspotId(null);
+    setSelectedManufacturer(null);
+    setFlyoutOpen(false);
+    setResetSignal((signal) => signal + 1);
+    window.history.replaceState(null, "", "/");
   }
 
   if (state.status === "loading") {
@@ -152,66 +160,51 @@ export default function EngineShell() {
         </button>
         <button
           type="button"
-          className={"hs-rail-btn" + (view === "directory" ? " hs-rail-active" : "")}
-          title="Directory"
-          aria-label="Directory"
-          onClick={goToDirectory}
-        >
-          ▤
-        </button>
-        <button
-          type="button"
           className="hs-rail-btn"
           title="Reset selection"
           aria-label="Reset selection"
-          onClick={resetDirectory}
+          onClick={resetAll}
         >
           ↺
         </button>
       </aside>
 
-      <Flyout open={flyoutOpen} onClose={() => setFlyoutOpen(false)} data={state.data} onGo={handleFlyoutGo} />
+      <Flyout
+        open={flyoutOpen}
+        onClose={() => setFlyoutOpen(false)}
+        data={state.data}
+        onGo={handleFlyoutGo}
+        onSelectManufacturer={handleFlyoutManufacturer}
+        resetSignal={resetSignal}
+      />
 
-      {view === "directory" && (
-        <DirectoryView key={directoryResetKey} data={state.data} onOpenMap={openMap} />
-      )}
-
-      {view !== "directory" && (
-        <div className="hs-main">
-          <div className="hs-topbar">
-            <div className="orange-bar" />
-            <span className="headstart-word">Headstart</span>
-            <nav className="hs-topbar-nav">
-              <button type="button" className="hs-topbar-navlink" onClick={goToDirectory}>
-                Directory
-              </button>
-              <a href="/manufacturers" className="hs-topbar-navlink">
-                Manufacturers
-              </a>
-            </nav>
-            <span className="app-tag">{APP_TITLES[view]}</span>
-          </div>
-
-          {view === "embedded-pc" ? (
-            <EmbeddedPCMap data={state.data} />
-          ) : (
-            <HotspotMap
-              data={state.data}
-              applicationModel={APP_TITLES[view]}
-              imageSrc={view === "robotics-automation" ? ROBOTICS_AUTOMATION_IMAGE_SRC : undefined}
-              variantImages={
-                view === "wearables"
-                  ? WEARABLES_IMAGES
-                  : view === "military-drones"
-                  ? MILITARY_DRONES_IMAGES
-                  : undefined
-              }
-              pendingHotspotId={pendingHotspotId}
-              onConsumedPending={() => setPendingHotspotId(null)}
-            />
-          )}
-        </div>
-      )}
+      <div className="hs-main">
+        {view === "embedded-pc" ? (
+          <EmbeddedPCMap
+            data={state.data}
+            selectedManufacturer={selectedManufacturer}
+            onSelectManufacturer={setSelectedManufacturer}
+            resetSignal={resetSignal}
+          />
+        ) : (
+          <HotspotMap
+            data={state.data}
+            applicationModel={APP_TITLES[view]}
+            imageSrc={view === "robotics-automation" ? ROBOTICS_AUTOMATION_IMAGE_SRC : undefined}
+            variantImages={
+              view === "wearables"
+                ? WEARABLES_IMAGES
+                : view === "military-drones"
+                ? MILITARY_DRONES_IMAGES
+                : undefined
+            }
+            pendingHotspotId={pendingHotspotId}
+            onConsumedPending={() => setPendingHotspotId(null)}
+            onHotspotSelectionChange={setUrlHotspotId}
+            resetSignal={resetSignal}
+          />
+        )}
+      </div>
     </div>
   );
 }

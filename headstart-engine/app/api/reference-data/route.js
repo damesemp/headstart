@@ -18,6 +18,7 @@ function manufacturerShape(record) {
     subcategory: f[FIELDS.MANUFACTURERS.SUBCATEGORY] || [],
     shortDescription: f[FIELDS.MANUFACTURERS.SHORT_DESCRIPTION] || "",
     longDescription: f[FIELDS.MANUFACTURERS.LONG_DESCRIPTION] || "",
+    headline: f[FIELDS.MANUFACTURERS.MANUFACTURER_HEADLINE] || "",
     keyProducts: f[FIELDS.MANUFACTURERS.KEY_PRODUCTS] || "",
     applications: f[FIELDS.MANUFACTURERS.APPLICATIONS] || "",
     industries: f[FIELDS.MANUFACTURERS.INDUSTRIES] || "",
@@ -34,6 +35,7 @@ function manufacturerShape(record) {
     // Step 4 — right-hand panel "Why this manufacturer fits" fallback
     // when a given hotspot mapping row has no per-hotspot text of its own.
     coreAdvantages: f[FIELDS.MANUFACTURERS.CORE_ADVANTAGES] || "",
+    qualityCertifications: f[FIELDS.MANUFACTURERS.QUALITY_CERTIFICATIONS] || "",
   };
 }
 
