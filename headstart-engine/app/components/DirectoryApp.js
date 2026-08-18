@@ -20,6 +20,14 @@ import ManufacturerLinks from "./ManufacturerLinks";
 //    Section 6 already flags reconciling this against the Segments table
 //    as unresolved housekeeping. Rather than re-hardcode a guess, this
 //    build skips the Industry column for now: Applications, Areas, Results.
+//
+// Step 4 — "Open map" now links to a real hotspot map page for
+// applications that have one built. Only Robotics & Automation exists so
+// far (first build target, 18 August 2026); the rest fall back to the
+// existing in-page drill-down until their maps are built.
+const HOTSPOT_MAP_ROUTES = {
+  "Robotics & Automation": "/applications/robotics-automation",
+};
 
 function buildDirData(mapping) {
   const dir = {};
@@ -216,7 +224,16 @@ export default function DirectoryApp() {
                       : "0 manufacturers"}
                   </div>
                   <div className="hs-dir-acard-actions">
-                    {total > 0 && (
+                    {total > 0 && HOTSPOT_MAP_ROUTES[app] && (
+                      <Link
+                        href={HOTSPOT_MAP_ROUTES[app]}
+                        className="hs-dir-openmap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Open map ↗
+                      </Link>
+                    )}
+                    {total > 0 && !HOTSPOT_MAP_ROUTES[app] && (
                       <button
                         type="button"
                         className="hs-dir-openmap"

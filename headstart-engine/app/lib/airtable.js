@@ -30,6 +30,9 @@ export const FIELDS = {
     FEATURED_LINK_URL: "fld5DDTqBmviA9Ma3",
     FEATURED_LINK_LABEL: "fld3rX57hSfZHy9H2",
     PDF_URL: "fldCkmDWt1qzUw4EO",
+    // Added for Step 4's right-hand panel ("Manufacturer Details" card) —
+    // confirmed via live schema check 18 August 2026.
+    CORE_ADVANTAGES: "fldW2pEdBboSh8ehd",
   },
   APPLICATION_MAPPING: {
     MAPPING_ID: "fldxjSmK4myWDLiyc",
@@ -38,6 +41,10 @@ export const FIELDS = {
     RELEVANT_ASTUTE_LINE: "flda7O0hgthSQWx6x",
     FIT_TYPE: "fldmXCMWm4nh444PV",
     WHY_THIS_LINE_FITS: "fldy4EZToLrk8Uae8",
+    // Added for Step 4's right-hand panel ("Ask & Act" card) — confirmed
+    // via live schema check 18 August 2026.
+    QUESTIONS: "flde6zNaSrTsC9Jjy",
+    NEXT_ACTIONS: "fldyiI1IcF3UqOHaT",
     SHOW_IN_MODEL: "fldXiU3cY2dMm2kBO",
     REVIEW_STATUS: "fldq2WQe81jdvtBLJ",
     CONFIDENCE_PRIORITY: "fldjSjfzFTABt6hXt",
@@ -52,9 +59,22 @@ export const FIELDS = {
   HOTSPOTS: {
     LABEL: "fldTgNaYTbo59xabZ",
     HOTSPOT_ID: "fldPVvojgFaqPWLBo",
+    // Linked-record field (multipleRecordLinks to Application Models), not
+    // text — cannot be filtered by application name via the Airtable API's
+    // structured filters. Not used for that; hotspot-to-application
+    // resolution goes through Application Mapping's own Hotspot link
+    // instead (see mappingShape in api/reference-data/route.js). Kept here
+    // only in case a future feature needs the raw linked record IDs.
     APPLICATION_MODEL: "fldjztMJyC7qPKvAr",
     X: "fldMu4vMPUmgtJIRL",
     Y: "fldetMIPHPsQ9BoYP",
+    // Added for Step 4's pan/zoom-on-click and hotspot label placement —
+    // confirmed via live schema check 18 August 2026.
+    SMART_ZOOM: "fldTCU5qAqlA8kwnk",
+    LABEL_X: "fldxqL3GAGxzUmAhz",
+    LABEL_Y: "fldIXgZ7aEeUd9LJO",
+    LABEL_SIDE: "fldVaTm8r4NGXSTum",
+    DEVICE_VARIANT: "fldy0FnATnScnAg6v",
   },
   VIDEOS: {
     APPLICATION_MODEL: "fldtDwenmLLaehnCP",

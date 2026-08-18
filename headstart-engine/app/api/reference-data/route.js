@@ -28,6 +28,9 @@ function manufacturerShape(record) {
     featuredLinkUrl: f[FIELDS.MANUFACTURERS.FEATURED_LINK_URL] || null,
     featuredLinkLabel: f[FIELDS.MANUFACTURERS.FEATURED_LINK_LABEL] || "",
     pdfUrl: f[FIELDS.MANUFACTURERS.PDF_URL] || null,
+    // Step 4 — right-hand panel "Why this manufacturer fits" fallback
+    // when a given hotspot mapping row has no per-hotspot text of its own.
+    coreAdvantages: f[FIELDS.MANUFACTURERS.CORE_ADVANTAGES] || "",
   };
 }
 
@@ -39,6 +42,16 @@ function hotspotShape(record) {
     hotspotId: f[FIELDS.HOTSPOTS.HOTSPOT_ID] || "",
     x: f[FIELDS.HOTSPOTS.X] ?? null,
     y: f[FIELDS.HOTSPOTS.Y] ?? null,
+    // Step 4 — pan/zoom-on-click and label placement. Note: the raw
+    // Airtable REST API (used here, unlike the Airtable MCP tool) returns
+    // singleSelect fields as plain option-name strings, not {id,name}
+    // objects, even with returnFieldsByFieldId=true — so Label Side reads
+    // directly as a string.
+    smartZoom: f[FIELDS.HOTSPOTS.SMART_ZOOM] ?? null,
+    labelX: f[FIELDS.HOTSPOTS.LABEL_X] ?? 0,
+    labelY: f[FIELDS.HOTSPOTS.LABEL_Y] ?? 0,
+    labelSide: f[FIELDS.HOTSPOTS.LABEL_SIDE] || "centre",
+    deviceVariant: f[FIELDS.HOTSPOTS.DEVICE_VARIANT] || null,
   };
 }
 
@@ -55,6 +68,9 @@ function mappingShape(record, hotspotById) {
     relevantAstuteLine: f[FIELDS.APPLICATION_MAPPING.RELEVANT_ASTUTE_LINE] || [],
     fitType: f[FIELDS.APPLICATION_MAPPING.FIT_TYPE] || null,
     whyThisLineFits: f[FIELDS.APPLICATION_MAPPING.WHY_THIS_LINE_FITS] || "",
+    // Step 4 — right-hand panel "Ask & Act" card.
+    questions: f[FIELDS.APPLICATION_MAPPING.QUESTIONS] || "",
+    nextActions: f[FIELDS.APPLICATION_MAPPING.NEXT_ACTIONS] || "",
     reviewStatus: f[FIELDS.APPLICATION_MAPPING.REVIEW_STATUS] || null,
     confidencePriority: f[FIELDS.APPLICATION_MAPPING.CONFIDENCE_PRIORITY] || null,
   };
