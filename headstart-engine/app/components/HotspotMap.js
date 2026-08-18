@@ -1,80 +1,102 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import ZoomPanStage from "./ZoomPanStage";
+import CardsPanel from "./CardsPanel";
 
-// Step 4 — hotspot map. First build target: Robotics & Automation (per
-// Damian's instruction to demonstrate online functionality now rather than
-// keep polishing the Manufacturers page). Reads live Hotspots + Application
-// Mapping + Manufacturers data via /api/reference-data, same as Steps 3/3.1.
+// Hotspot map — Wearables, Military Drones, Robotics & Automation. Reads
+// live Hotspots + Application Mapping + Manufacturers data, passed down
+// from EngineShell (single fetch shared across every view — see Section 2
+// of the nav rearchitecture spec) rather than fetched here directly.
 //
-// Hotspot-to-application membership is resolved the same way DirectoryApp
-// already does it: via Application Mapping's own Hotspot link, NOT via
-// Hotspots."Application Model" (that field is a linked-record field to a
-// separate Application Models table and can't be trusted for this — see
+// Hotspot-to-application membership is resolved via Application Mapping's
+// own Hotspot link, not via Hotspots."Application Model" (see
 // app/lib/airtable.js FIELDS.HOTSPOTS.APPLICATION_MODEL comment).
 //
-// Device image(s) are interim embedded base64 data URIs (app/lib/deviceImages.js),
-// extracted directly from the offline reference file. This is a known,
-// flagged compromise — proper permanent storage (Vercel Blob) is still
-// outstanding, see HEADSTART_MASTER_HANDOVER.md.
+// `pendingHotspotId` drives the flyout's "Go ↗": when set, this hotspot is
+// selected and the stage zooms to it, same as a manual click, then the
+// parent is told to clear the pending target so it doesn't re-fire.
 //
-// Some applications have one physical device (Robotics & Automation — pass
-// `imageSrc`); others have several device variants, each with its own image
-// and its own hotspot set (Wearables: Smart Watch/Ring/Glasses; Military
-// Drones - Air: Combat/Surveillance Drone — pass `variantImages`, an object
-// keyed by the exact Device Variant string used in Airtable's Hotspots
-// table). Variant membership is read live from each hotspot's own Device
-// Variant field, not hardcoded here.
-export default function HotspotMap({ applicationModel, imageSrc, variantImages, backLabel }) {
-  const [state, setState] = useState({ status: "loading", data: null, error: null });
+// Hotspot x/y are percentages of the DEVICE IMAGE, not of the stage box —
+// the two only match if the image's aspect ratio exactly fills the stage.
+// It usually doesn't, so this measures the image's actual letterboxed
+// rendered rect inside the stage (object-fit: contain) and places dots in
+// pixels against that rect. This is also what fixed the "opens
+// over-magnified / cropped" bug: previously the image was stretched to
+// 100% width with height:auto inside an overflow:hidden box, so a
+// taller-than-wide device image had its top and bottom clipped.
+// Pure letterbox calc — pulled out of the component so it can be called
+// on-demand with a freshly-measured size (see selectHotspot's comment)
+// instead of only through the memoized, ResizeObserver-fed state.
+function renderedBoxFor(cw, ch, imgNatural) {
+  const { w: iw, h: ih } = imgNatural;
+  if (!cw || !ch || !iw || !ih) return { w: cw, h: ch, x: 0, y: 0 };
+  const containerRatio = cw / ch;
+  const imageRatio = iw / ih;
+  if (imageRatio > containerRatio) {
+    const w = cw;
+    const h = cw / imageRatio;
+    return { w, h, x: 0, y: (ch - h) / 2 };
+  }
+  const h = ch;
+  const w = ch * imageRatio;
+  return { w, h, x: (cw - w) / 2, y: 0 };
+}
+
+export default function HotspotMap({
+  data,
+  applicationModel,
+  imageSrc,
+  variantImages,
+  pendingHotspotId,
+  onConsumedPending,
+}) {
   const [selectedHotspotId, setSelectedHotspotId] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [view, setView] = useState({ scale: 1, tx: 0, ty: 0 });
+  const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
+  const [imgNatural, setImgNatural] = useState({ w: 0, h: 0 });
+  const frameRef = useRef(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/reference-data")
-      .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || `Request failed (${res.status})`);
-        return json;
-      })
-      .then((json) => {
-        if (!cancelled) setState({ status: "ready", data: json, error: null });
-      })
-      .catch((err) => {
-        if (!cancelled) setState({ status: "error", data: null, error: String(err.message || err) });
-      });
-    return () => {
-      cancelled = true;
-    };
+  useLayoutEffect(() => {
+    if (!frameRef.current || typeof ResizeObserver === "undefined") return;
+    const el = frameRef.current;
+    const ro = new ResizeObserver(() => {
+      setStageSize({ w: el.clientWidth, h: el.clientHeight });
+    });
+    ro.observe(el);
+    setStageSize({ w: el.clientWidth, h: el.clientHeight });
+    return () => ro.disconnect();
   }, []);
+
+  // The image's actual rendered rect within the stage box, given
+  // object-fit: contain — this is the letterbox math.
+  const renderedBox = useMemo(
+    () => renderedBoxFor(stageSize.w, stageSize.h, imgNatural),
+    [stageSize, imgNatural]
+  );
 
   const manufacturerById = useMemo(() => {
     const map = {};
-    (state.data?.manufacturers || []).forEach((m) => {
+    (data.manufacturers || []).forEach((m) => {
       map[m.id] = m;
     });
     return map;
-  }, [state.data]);
+  }, [data]);
 
-  // Hotspots table rows, keyed by their human hotspotId string (e.g.
-  // "base-housing"), which is what Application Mapping rows carry.
   const hotspotByHotspotId = useMemo(() => {
     const map = {};
-    (state.data?.hotspots || []).forEach((h) => {
+    (data.hotspots || []).forEach((h) => {
       if (h.hotspotId) map[h.hotspotId] = h;
     });
     return map;
-  }, [state.data]);
+  }, [data]);
 
   const mappingRows = useMemo(
-    () => (state.data?.applicationMapping || []).filter((r) => r.applicationModel === applicationModel),
-    [state.data, applicationModel]
+    () => (data.applicationMapping || []).filter((r) => r.applicationModel === applicationModel),
+    [data, applicationModel]
   );
 
-  // The set of hotspots that actually belong to this application, derived
-  // from the mapping rows rather than guessed at.
   const hotspotsForApp = useMemo(() => {
     const seen = new Map();
     mappingRows.forEach((r) => {
@@ -85,8 +107,6 @@ export default function HotspotMap({ applicationModel, imageSrc, variantImages, 
     return Array.from(seen.values());
   }, [mappingRows, hotspotByHotspotId]);
 
-  // Distinct device variants present, in first-seen order — empty for
-  // single-device applications like Robotics & Automation.
   const variants = useMemo(() => {
     const seen = [];
     hotspotsForApp.forEach((h) => {
@@ -97,8 +117,59 @@ export default function HotspotMap({ applicationModel, imageSrc, variantImages, 
 
   const activeVariant = variants.length ? selectedVariant || variants[0] : null;
 
+  function pixelForHotspot(h) {
+    return {
+      left: renderedBox.x + ((h.x || 0) / 100) * renderedBox.w,
+      top: renderedBox.y + ((h.y || 0) / 100) * renderedBox.h,
+    };
+  }
+
+  function selectHotspot(hotspotId) {
+    setSelectedHotspotId(hotspotId);
+    const h = hotspotByHotspotId[hotspotId];
+    // Measure the frame directly rather than trusting the ResizeObserver-fed
+    // stageSize state — on a freshly-mounted map (e.g. landing here straight
+    // from the flyout's "Go ↗"), the observer's first callback hasn't fired
+    // yet when this runs, so stageSize can still be its {0,0} initial value
+    // even though the element itself is already laid out and measurable.
+    const w = frameRef.current?.clientWidth || 0;
+    const hgt = frameRef.current?.clientHeight || 0;
+    if (h && w && hgt) {
+      const scale = (h.smartZoom || 100) / 100;
+      const box = renderedBoxFor(w, hgt, imgNatural);
+      const left = box.x + ((h.x || 0) / 100) * box.w;
+      const top = box.y + ((h.y || 0) / 100) * box.h;
+      const deltaX = left - w / 2;
+      const deltaY = top - hgt / 2;
+      setView({ scale, tx: -deltaX * scale, ty: -deltaY * scale });
+    }
+  }
+
+  // Apply a pending "Go ↗" target from the flyout — switch variant if
+  // needed, select the hotspot, zoom to it, then tell the parent it's done
+  // so this doesn't re-fire on every re-render.
+  useEffect(() => {
+    if (!pendingHotspotId) return;
+    const h = hotspotByHotspotId[pendingHotspotId];
+    if (!h) {
+      onConsumedPending();
+      return;
+    }
+    if (h.deviceVariant && h.deviceVariant !== activeVariant) {
+      setSelectedVariant(h.deviceVariant);
+    }
+    selectHotspot(pendingHotspotId);
+    onConsumedPending();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingHotspotId, hotspotByHotspotId, stageSize]);
+
   function chooseVariant(v) {
     setSelectedVariant(v);
+    setSelectedHotspotId(null);
+    setView({ scale: 1, tx: 0, ty: 0 });
+  }
+
+  function resetView() {
     setSelectedHotspotId(null);
   }
 
@@ -116,8 +187,6 @@ export default function HotspotMap({ applicationModel, imageSrc, variantImages, 
 
   const selectedHotspot = selectedHotspotId ? hotspotByHotspotId[selectedHotspotId] : null;
 
-  // Best Fit first, then Also Relevant / Related Opportunity — matches the
-  // Fit Type single-select's intended priority ordering.
   const FIT_ORDER = { "Best Fit": 0, "Also Relevant": 1, "Related Opportunity": 2 };
   const sortedRowsForSelected = useMemo(() => {
     return [...rowsForSelected].sort((a, b) => {
@@ -127,163 +196,78 @@ export default function HotspotMap({ applicationModel, imageSrc, variantImages, 
     });
   }, [rowsForSelected]);
 
-  // Questions/Next Actions are set once per hotspot (duplicated across every
-  // manufacturer row for that hotspot in the data) — take them from the
-  // first row rather than repeating per manufacturer card.
   const sharedQuestions = sortedRowsForSelected[0]?.questions || "";
   const sharedNextActions = sortedRowsForSelected[0]?.nextActions || "";
 
-  if (state.status === "loading") {
-    return <div className="hs-state-msg">Loading hotspot map…</div>;
-  }
-  if (state.status === "error") {
-    return (
-      <div className="hs-state-msg">
-        Could not load live data from Airtable: {state.error}
-      </div>
-    );
-  }
-
-  // Zoom into the selected hotspot by scaling the image around its x/y
-  // percentage as the CSS transform-origin. Smart Zoom % from Airtable
-  // drives the scale factor.
-  const zoomStyle = selectedHotspot
-    ? {
-        transform: `scale(${(selectedHotspot.smartZoom || 100) / 100})`,
-        transformOrigin: `${selectedHotspot.x}% ${selectedHotspot.y}%`,
-      }
-    : { transform: "scale(1)", transformOrigin: "50% 50%" };
-
   return (
-    <div className="hs-app-shell" style={{ display: "block", padding: "0" }}>
-      <div className="hs-topbar">
-        <div className="orange-bar" />
-        <span className="headstart-word">Headstart</span>
-        <nav className="hs-topbar-nav">
-          <Link href="/" className="hs-topbar-navlink">
-            Directory
-          </Link>
-          <Link href="/manufacturers" className="hs-topbar-navlink">
-            Manufacturers
-          </Link>
-        </nav>
-        <span className="app-tag">{applicationModel}</span>
-      </div>
-
-      <div className="hs-hsmap-layout">
-        <div className="hs-hsmap-stage">
-          {variants.length > 1 && (
-            <div className="hs-hsmap-varrow">
-              {variants.map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  className={"hs-hsmap-vartab" + (v === activeVariant ? " hs-on" : "")}
-                  onClick={() => chooseVariant(v)}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="hs-hsmap-imgwrap">
-            <img
-              src={activeImageSrc}
-              alt={activeVariant ? `${applicationModel} — ${activeVariant}` : applicationModel}
-              className="hs-hsmap-img"
-              style={zoomStyle}
-            />
-            {visibleHotspots.map((h) => (
+    <div className="hs-hsmap-layout">
+      <div className="hs-hsmap-stage">
+        {variants.length > 1 && (
+          <div className="hs-hsmap-varrow">
+            {variants.map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={"hs-hsmap-vartab" + (v === activeVariant ? " hs-on" : "")}
+                onClick={() => chooseVariant(v)}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        )}
+        <ZoomPanStage
+          ref={frameRef}
+          scale={view.scale}
+          tx={view.tx}
+          ty={view.ty}
+          onChange={setView}
+          onReset={resetView}
+          className="hs-hsmap-imgwrap"
+        >
+          <img
+            key={activeImageSrc}
+            src={activeImageSrc}
+            alt={activeVariant ? `${applicationModel} — ${activeVariant}` : applicationModel}
+            className="hs-hsmap-img"
+            onLoad={(e) => setImgNatural({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
+          />
+          {visibleHotspots.map((h) => {
+            const pos = pixelForHotspot(h);
+            return (
               <button
                 key={h.hotspotId}
                 type="button"
                 className={"hs-hsmap-dot" + (h.hotspotId === selectedHotspotId ? " hs-on" : "")}
-                style={{ left: `${h.x}%`, top: `${h.y}%` }}
+                style={{ left: `${pos.left}px`, top: `${pos.top}px` }}
                 title={h.label}
-                onClick={() => setSelectedHotspotId(h.hotspotId)}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectHotspot(h.hotspotId);
+                }}
               >
                 <span className="hs-hsmap-dotlabel">{h.label}</span>
               </button>
-            ))}
-          </div>
-          <div className="hs-hsmap-backrow">
-            <Link href="/" className="hs-dir-openmap">
-              ‹ Back to {backLabel || "Directory"}
-            </Link>
-          </div>
-        </div>
-
-        <div className="hs-hsmap-panel">
-          {!selectedHotspot && (
-            <div className="hs-hsmap-empty">
-              <div className="hs-hsmap-empty-title">NOTHING SELECTED</div>
-              <div className="hs-hsmap-empty-sub">
-                Click a hotspot on the diagram to see the manufacturers, fit and
-                talking points for that area.
-              </div>
-            </div>
-          )}
-
-          {selectedHotspot && (
-            <>
-              <div className="hs-dir-rhead">
-                <div className="hs-dir-rtitle">{selectedHotspot.label}</div>
-                <div className="hs-dir-rsub">
-                  {sortedRowsForSelected.length} Astute line
-                  {sortedRowsForSelected.length === 1 ? "" : "s"} featured
-                </div>
-              </div>
-
-              <div className="hs-hsmap-col-title">Target</div>
-              {sortedRowsForSelected.map((row) => {
-                const m = manufacturerById[row.relevantAstuteLine[0]];
-                if (!m) return null;
-                return (
-                  <div className="hs-hsmap-mfrcard" key={row.id}>
-                    <div className="hs-hsmap-mfrhead">
-                      <span className="hs-dir-mname">{m.name}</span>
-                      {row.fitType && (
-                        <span className={"hs-hsmap-badge hs-badge-" + row.fitType.replace(/\s+/g, "-").toLowerCase()}>
-                          {row.fitType}
-                        </span>
-                      )}
-                    </div>
-                    {(row.whyThisLineFits || m.coreAdvantages) && (
-                      <div className="hs-hsmap-mfrtext">
-                        {row.whyThisLineFits || m.coreAdvantages}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              <div className="hs-hsmap-col-title">Ask &amp; Act</div>
-              <div className="hs-hsmap-askact">
-                {sharedQuestions && (
-                  <>
-                    <div className="hs-hsmap-asklbl">Questions to ask now</div>
-                    <div className="hs-hsmap-asktext">
-                      {sharedQuestions.split("\n").map((line, i) => (
-                        <div key={i}>{line}</div>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {sharedNextActions && (
-                  <>
-                    <div className="hs-hsmap-asklbl">Next actions</div>
-                    <div className="hs-hsmap-asktext">
-                      {sharedNextActions.split("\n").map((line, i) => (
-                        <div key={i}>{line}</div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+            );
+          })}
+        </ZoomPanStage>
       </div>
+
+      <CardsPanel
+        selection={
+          selectedHotspot
+            ? {
+                kind: "hotspot",
+                hotspot: selectedHotspot,
+                rows: sortedRowsForSelected,
+                manufacturerById,
+                sharedQuestions,
+                sharedNextActions,
+              }
+            : null
+        }
+      />
     </div>
   );
 }

@@ -33,6 +33,8 @@ body {
    per HEADSTART_MASTER_HANDOVER.md Section 3 ("duplicates the Directory and
    confuses navigation"). */
 .hs-rail {
+  position: relative;
+  z-index: 50;
   width: 64px;
   flex-shrink: 0;
   background: #111;
@@ -503,31 +505,43 @@ body {
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--card-border);
-  background: #0b0b0b;
+  /* Map window is white, not black — 18 Aug 2026 decision. */
+  background: #ffffff;
 }
 
+/* This is now the outer box passed into ZoomPanStage (see
+   ZoomPanStage.js/.hs-zoomstage) — always present at a fixed size, never
+   disappears, per Section 7 of the nav rearchitecture spec. */
 .hs-hsmap-imgwrap {
   position: relative;
   flex: 1;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #ffffff;
 }
 
 .hs-hsmap-img {
+  /* object-fit: contain against a frame that fills the stage, not
+     width:100%/height:auto against an overflow:hidden box — that stretch
+     is what caused the device image to open over-magnified/cropped.
+     Hotspot dots are positioned in JS-computed pixels against this same
+     letterboxed rect (see HotspotMap.js renderedBox), not raw % of the
+     stage, so they stay aligned to the image regardless of its aspect
+     ratio. */
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
   display: block;
-  transition: transform 0.35s ease;
 }
 
 .hs-hsmap-dot {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  margin-left: -8px;
-  margin-top: -8px;
+  /* Larger than the original 16px — 18 Aug 2026 decision. */
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
   border-radius: 50%;
   background: rgba(245, 130, 32, 0.85);
   border: 2px solid #fff;
@@ -546,25 +560,28 @@ body {
 }
 
 .hs-hsmap-dotlabel {
+  /* Visible by default, not just on hover/click — 18 Aug 2026 decision. */
   position: absolute;
-  top: 20px;
+  top: 26px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px;
   font-weight: 800;
   color: #fff;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(20, 20, 20, 0.85);
   padding: 2px 6px;
   border-radius: 4px;
   white-space: nowrap;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  opacity: 1;
+  z-index: 1;
 }
 
 .hs-hsmap-dot:hover .hs-hsmap-dotlabel,
 .hs-hsmap-dot.hs-on .hs-hsmap-dotlabel {
-  opacity: 1;
+  background: var(--teal);
+  color: #06231f;
+  z-index: 2;
 }
 
 .hs-hsmap-varrow {
@@ -706,12 +723,23 @@ body {
 }
 
 /* Embedded PC diagram — Step 4. Light stage, matching the reference file's
-   corrected --stage-light background, distinct from the dark hotspot map. */
+   corrected --stage-light background, distinct from the dark hotspot map.
+   Now sits inside the shared hs-hsmap-layout (map stage + cards panel),
+   pan/zoomable like the other three maps — 18 Aug 2026 nav rearchitecture. */
+.hs-pc-stage {
+  padding: 16px 16px 0;
+  overflow: hidden;
+}
+
+.hs-pc-zoomwrap {
+  background: #f2f1ed;
+  flex: 1;
+}
+
 .hs-pc-wrap {
   background: #f2f1ed;
   color: #2c2c2a;
-  padding: 20px 24px 32px;
-  min-height: calc(100vh - 76px);
+  padding: 4px 8px 32px;
 }
 
 .hs-pc-note {
@@ -720,6 +748,22 @@ body {
   margin-bottom: 18px;
   max-width: 640px;
   line-height: 1.5;
+}
+
+.hs-pc-mfrlink {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  cursor: pointer;
+}
+
+.hs-pc-mfrlink:hover {
+  text-decoration-color: currentColor;
+  color: var(--pc-accent, #2c2c2a);
 }
 
 .hs-pc-band {
@@ -846,4 +890,297 @@ body {
 
 .hs-pc-wrap .hs-dir-openmap:hover {
   color: #2c2c2a;
+}
+
+/* ================================================================
+   Nav rearchitecture — 18 Aug 2026
+   Shared pan/zoom/drag stage, flyout, splash screen.
+   ================================================================ */
+
+.hs-zoomstage {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.hs-zoomstage-frame {
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+/* HotspotMap's stage: the frame must exactly match the wrapper's box —
+   the letterbox math in HotspotMap.js assumes stageSize === frame size. */
+.hs-hsmap-imgwrap .hs-zoomstage-frame {
+  width: 100%;
+  height: 100%;
+}
+
+/* EmbeddedPCMap's stage: the frame hugs its own content (the category
+   grid can be taller than the visible stage) — drag/zoom reveals the
+   rest, rather than the frame being force-fit to the wrapper. */
+.hs-pc-zoomwrap .hs-zoomstage-frame {
+  width: 100%;
+}
+
+.hs-zoomstage-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(20, 20, 20, 0.85);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.hs-pc-stage .hs-zoomstage-controls {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #ddd;
+}
+
+.hs-zoomstage-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hs-pc-stage .hs-zoomstage-btn {
+  border-color: #ccc;
+  color: #2c2c2a;
+}
+
+.hs-zoomstage-pct {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  min-width: 38px;
+  text-align: center;
+}
+
+.hs-pc-stage .hs-zoomstage-pct {
+  color: #2c2c2a;
+}
+
+.hs-zoomstage-reset {
+  margin-left: 4px;
+  background: var(--astute-orange);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Flyout — partial-width left drawer, separate from the Directory overlay.
+   Opened only by the rail hamburger. */
+.hs-flyout-dim {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 64px;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 40;
+}
+
+.hs-flyout-dim.hs-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hs-flyout {
+  position: fixed;
+  top: 0;
+  left: 64px;
+  bottom: 0;
+  width: 360px;
+  max-width: 80vw;
+  background: #141414;
+  border-right: 1px solid var(--card-border);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.4);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.hs-flyout.hs-open {
+  pointer-events: auto;
+}
+
+.hs-flyout.hs-open {
+  transform: translateX(0);
+}
+
+.hs-flyout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.hs-flyout-close {
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hs-flyout-close:hover {
+  color: #fff;
+}
+
+.hs-flyout-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.hs-flyout-node {
+  margin-bottom: 2px;
+}
+
+.hs-flyout-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 10px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hs-flyout-row:hover {
+  background: #1e1e1e;
+}
+
+.hs-flyout-row-industry {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+}
+
+.hs-flyout-children {
+  padding-left: 14px;
+}
+
+.hs-flyout-disabled {
+  color: #666;
+  cursor: default;
+}
+
+.hs-flyout-disabled:hover {
+  background: none;
+}
+
+.hs-flyout-nomap {
+  font-size: 10px;
+  color: #555;
+  white-space: nowrap;
+}
+
+.hs-flyout-caret {
+  color: var(--ink-muted);
+  font-weight: 900;
+}
+
+.hs-flyout-go {
+  color: var(--astute-orange);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hs-flyout-row-area {
+  color: #ddd;
+}
+
+/* Splash screen — once per browser session. */
+.hs-splash {
+  position: fixed;
+  inset: 0;
+  background: var(--page-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.hs-splash-card {
+  text-align: center;
+}
+
+.hs-splash-astute {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+
+.hs-splash-headstart {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #fff;
+  position: relative;
+  display: inline-block;
+  padding-left: 14px;
+  border-left: 6px solid var(--astute-orange);
+}
+
+.hs-splash-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ink-muted);
+  letter-spacing: 0.03em;
+}
+
+.hs-splash-continue {
+  margin-top: 36px;
+  background: var(--astute-orange);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 36px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  cursor: pointer;
 }

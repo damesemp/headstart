@@ -1,5 +1,5 @@
-import DirectoryApp from "./components/DirectoryApp";
+import EngineShell from "./components/EngineShell";
 
 export default function HomePage() {
-  return <DirectoryApp />;
+  return <EngineShell />;
 }

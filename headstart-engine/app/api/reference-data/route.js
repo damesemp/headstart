@@ -55,6 +55,43 @@ function hotspotShape(record) {
     labelY: f[FIELDS.HOTSPOTS.LABEL_Y] ?? 0,
     labelSide: f[FIELDS.HOTSPOTS.LABEL_SIDE] || "centre",
     deviceVariant: f[FIELDS.HOTSPOTS.DEVICE_VARIANT] || null,
+    // Added 18 Aug 2026 — Application Area link(s), used by the flyout's
+    // "Go ↗" to jump straight to this hotspot.
+    applicationAreaIds: f[FIELDS.HOTSPOTS.APPLICATION_AREAS] || [],
+  };
+}
+
+function segmentShape(record) {
+  const f = record.fields;
+  return {
+    id: record.id,
+    name: f[FIELDS.SEGMENTS.SEGMENT_NAME] || "",
+    industry: f[FIELDS.SEGMENTS.INDUSTRY] || "",
+    hasDiagram: !!f[FIELDS.SEGMENTS.HAS_DIAGRAM],
+  };
+}
+
+function typeShape(record) {
+  const f = record.fields;
+  return {
+    id: record.id,
+    name: f[FIELDS.TYPES.TYPE_NAME] || "",
+    segment: f[FIELDS.TYPES.SEGMENT] || "",
+  };
+}
+
+function applicationAreaShape(record) {
+  const f = record.fields;
+  return {
+    id: record.id,
+    fullPath: f[FIELDS.APPLICATION_AREAS.FULL_PATH] || "",
+    industry: f[FIELDS.APPLICATION_AREAS.INDUSTRY] || "",
+    segment: f[FIELDS.APPLICATION_AREAS.SEGMENT] || "",
+    system: f[FIELDS.APPLICATION_AREAS.SYSTEM] || "",
+    applicationArea: f[FIELDS.APPLICATION_AREAS.APPLICATION_AREA] || "",
+    // Linked-record fields — raw REST API returns an array of record IDs.
+    relevantTypeIds: f[FIELDS.APPLICATION_AREAS.RELEVANT_TYPES] || [],
+    linkedHotspotIds: f[FIELDS.APPLICATION_AREAS.LINKED_HOTSPOTS] || [],
   };
 }
 
@@ -123,14 +160,25 @@ export async function GET() {
   try {
     const showInModelFormula = `{${FIELDS.APPLICATION_MAPPING.SHOW_IN_MODEL}} = TRUE()`;
 
-    const [manufacturerRecords, hotspotRecords, mappingRecords, competitorRecords, videoRecords] =
-      await Promise.all([
-        airtableFetchAll(TABLES.MANUFACTURERS),
-        airtableFetchAll(TABLES.HOTSPOTS),
-        airtableFetchAll(TABLES.APPLICATION_MAPPING, { filterByFormula: showInModelFormula }),
-        airtableFetchAll(TABLES.COMPETITOR_TRIGGERS),
-        airtableFetchAll(TABLES.VIDEOS),
-      ]);
+    const [
+      manufacturerRecords,
+      hotspotRecords,
+      mappingRecords,
+      competitorRecords,
+      videoRecords,
+      segmentRecords,
+      typeRecords,
+      applicationAreaRecords,
+    ] = await Promise.all([
+      airtableFetchAll(TABLES.MANUFACTURERS),
+      airtableFetchAll(TABLES.HOTSPOTS),
+      airtableFetchAll(TABLES.APPLICATION_MAPPING, { filterByFormula: showInModelFormula }),
+      airtableFetchAll(TABLES.COMPETITOR_TRIGGERS),
+      airtableFetchAll(TABLES.VIDEOS),
+      airtableFetchAll(TABLES.SEGMENTS),
+      airtableFetchAll(TABLES.TYPES),
+      airtableFetchAll(TABLES.APPLICATION_AREAS),
+    ]);
 
     const manufacturers = manufacturerRecords.map(manufacturerShape);
     const hotspots = hotspotRecords.map(hotspotShape);
@@ -143,6 +191,9 @@ export async function GET() {
     const competitorTriggers = competitorRecords.map(competitorTriggerShape);
     const videos = videoRecords.map(videoShape);
     const manufacturerApplicationIndex = buildManufacturerApplicationIndex(applicationMapping);
+    const segments = segmentRecords.map(segmentShape);
+    const types = typeRecords.map(typeShape);
+    const applicationAreas = applicationAreaRecords.map(applicationAreaShape);
 
     return NextResponse.json({
       manufacturers,
@@ -151,12 +202,18 @@ export async function GET() {
       competitorTriggers,
       videos,
       manufacturerApplicationIndex,
+      segments,
+      types,
+      applicationAreas,
       meta: {
         mappedCount: applicationMapping.length,
         manufacturerCount: manufacturers.length,
         hotspotCount: hotspots.length,
         competitorTriggerCount: competitorTriggers.length,
         videoCount: videos.length,
+        segmentCount: segments.length,
+        typeCount: types.length,
+        applicationAreaCount: applicationAreas.length,
         generatedAt: new Date().toISOString(),
       },
     });

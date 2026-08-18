@@ -1,77 +1,49 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useMemo, useRef, useState } from "react";
 import { CATEGORY_COLORS, PC_LAYOUT, PC_ATTACH } from "../lib/pcCategories";
+import ZoomPanStage from "./ZoomPanStage";
+import CardsPanel from "./CardsPanel";
 
-// Step 4 — Embedded PC diagram. Architecturally separate from the hotspot
-// map (HotspotMap.js) per HEADSTART_MASTER_HANDOVER.md Section 3 — no
-// hotspots, no Segment record, no device image. The reference file
-// synthesises this at runtime from all manufacturer records grouped by
-// category/subcategory; this component does the same against live
-// /api/reference-data, using the same fixed spatial layout and colour
-// system as the offline file (app/lib/pcCategories.js).
+// Embedded PC — the one standalone exception to the Industry/Segment/Type/
+// System/Application Area schema (agreed 18 Aug 2026): no hotspots, no
+// Application Area records, no device image. Synthesised at runtime from
+// every manufacturer record grouped by Linecard Category/Subcategory.
 //
-// Scope decision, written down rather than silently simplified: the
-// offline reference file renders this as a large pan/zoomable canvas with
-// mouse-drag panning and zoom controls, because it was built for a fixed
-// full-screen stage. On a responsive web page the categories fit as an
-// ordinary CSS grid without needing pan/zoom — so that mechanic is not
-// ported. Click-to-expand a category (showing every subcategory's real
-// manufacturer list, and highlighting companion categories) is the actual
-// functional value and IS ported.
-export default function EmbeddedPCMap() {
-  const [state, setState] = useState({ status: "loading", data: null, error: null });
+// Clicking a manufacturer name populates the same shared cards panel a
+// hotspot click does elsewhere — not a separate link-out — per the nav
+// rearchitecture spec Section 8. Outbound website/PDF links render inside
+// that card via the existing ManufacturerLinks component.
+export default function EmbeddedPCMap({ data }) {
   const [anchor, setAnchor] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/reference-data")
-      .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || `Request failed (${res.status})`);
-        return json;
-      })
-      .then((json) => {
-        if (!cancelled) setState({ status: "ready", data: json, error: null });
-      })
-      .catch((err) => {
-        if (!cancelled) setState({ status: "error", data: null, error: String(err.message || err) });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [selectedManufacturer, setSelectedManufacturer] = useState(null);
+  const [view, setView] = useState({ scale: 1, tx: 0, ty: 0 });
+  const frameRef = useRef(null);
 
   // Group every manufacturer by its real Linecard Category / Subcategory —
-  // computed live, not a hardcoded subset.
+  // computed live, not a hardcoded subset. Keeps the full manufacturer
+  // object (not just the name) so a click can populate the cards panel.
   const categories = useMemo(() => {
     const cats = {};
-    (state.data?.manufacturers || []).forEach((m) => {
+    (data.manufacturers || []).forEach((m) => {
       const cat = m.linecardCategory || "Uncategorised";
       const subs = m.subcategory && m.subcategory.length ? m.subcategory : ["Other"];
       if (!cats[cat]) cats[cat] = { count: 0, subs: {} };
       cats[cat].count++;
       subs.forEach((sub) => {
         if (!cats[cat].subs[sub]) cats[cat].subs[sub] = [];
-        cats[cat].subs[sub].push(m.name);
+        cats[cat].subs[sub].push(m);
       });
     });
     return cats;
-  }, [state.data]);
-
-  if (state.status === "loading") {
-    return <div className="hs-state-msg">Loading Embedded PC categories…</div>;
-  }
-  if (state.status === "error") {
-    return (
-      <div className="hs-state-msg">
-        Could not load live data from Airtable: {state.error}
-      </div>
-    );
-  }
+  }, [data]);
 
   const companions = anchor ? PC_ATTACH[anchor] || [] : [];
+
+  function resetView() {
+    setSelectedManufacturer(null);
+    setAnchor(null);
+  }
 
   function renderBox(name) {
     const c = categories[name];
@@ -92,7 +64,10 @@ export default function EmbeddedPCMap() {
           "--pc-bg": colors.bg || "#F1EFE8",
           "--pc-subbg": colors.subBg || "#E7E5DC",
         }}
-        onClick={() => setAnchor(isAnchor ? null : name)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setAnchor(isAnchor ? null : name);
+        }}
       >
         <div className="hs-pc-box-head">
           <h3>{name}</h3>
@@ -111,7 +86,24 @@ export default function EmbeddedPCMap() {
             {subNames.map((sub) => (
               <div className="hs-pc-subbox" key={sub}>
                 <div className="hs-pc-subbox-title">{sub}</div>
-                <div className="hs-pc-subbox-names">{c.subs[sub].join(", ")}</div>
+                <div className="hs-pc-subbox-names">
+                  {c.subs[sub].map((m, i) => (
+                    <span key={m.id}>
+                      <button
+                        type="button"
+                        className="hs-pc-mfrlink"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedManufacturer(m);
+                        }}
+                      >
+                        {m.name}
+                      </button>
+                      {i < c.subs[sub].length - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -121,45 +113,38 @@ export default function EmbeddedPCMap() {
   }
 
   return (
-    <div className="hs-app-shell" style={{ display: "block", padding: "0" }}>
-      <div className="hs-topbar">
-        <div className="orange-bar" />
-        <span className="headstart-word">Headstart</span>
-        <nav className="hs-topbar-nav">
-          <Link href="/" className="hs-topbar-navlink">
-            Directory
-          </Link>
-          <Link href="/manufacturers" className="hs-topbar-navlink">
-            Manufacturers
-          </Link>
-        </nav>
-        <span className="app-tag">Embedded PC</span>
-      </div>
-
-      <div className="hs-pc-wrap">
+    <div className="hs-hsmap-layout">
+      <div className="hs-hsmap-stage hs-pc-stage">
         <div className="hs-pc-note">
-          Click a category to see every subcategory and the real manufacturers in it. Companion
-          categories highlight automatically.
+          Click a category to see every subcategory and the real manufacturers in it. Click a
+          manufacturer's name to see its details. Companion categories highlight automatically.
         </div>
-
-        <div className="hs-pc-band">{PC_LAYOUT.memoryBand.map(renderBox)}</div>
-
-        <div className="hs-pc-mid">
-          <div className="hs-pc-stack">{PC_LAYOUT.leftStack.map(renderBox)}</div>
-          <div className="hs-pc-centre">
-            <div className="hs-pc-row">{PC_LAYOUT.brain.map(renderBox)}</div>
-            <div className="hs-pc-row">{PC_LAYOUT.centreBelow.map(renderBox)}</div>
-            <div className="hs-pc-row">{PC_LAYOUT.centreRow2.map(renderBox)}</div>
+        <ZoomPanStage
+          ref={frameRef}
+          scale={view.scale}
+          tx={view.tx}
+          ty={view.ty}
+          onChange={setView}
+          onReset={resetView}
+          min={0.4}
+          className="hs-pc-zoomwrap"
+        >
+          <div className="hs-pc-wrap">
+            <div className="hs-pc-band">{PC_LAYOUT.memoryBand.map(renderBox)}</div>
+            <div className="hs-pc-mid">
+              <div className="hs-pc-stack">{PC_LAYOUT.leftStack.map(renderBox)}</div>
+              <div className="hs-pc-centre">
+                <div className="hs-pc-row">{PC_LAYOUT.brain.map(renderBox)}</div>
+                <div className="hs-pc-row">{PC_LAYOUT.centreBelow.map(renderBox)}</div>
+                <div className="hs-pc-row">{PC_LAYOUT.centreRow2.map(renderBox)}</div>
+              </div>
+              <div className="hs-pc-stack">{PC_LAYOUT.rightStack.map(renderBox)}</div>
+            </div>
           </div>
-          <div className="hs-pc-stack">{PC_LAYOUT.rightStack.map(renderBox)}</div>
-        </div>
-
-        <div className="hs-hsmap-backrow">
-          <Link href="/" className="hs-dir-openmap">
-            ‹ Back to Directory
-          </Link>
-        </div>
+        </ZoomPanStage>
       </div>
+
+      <CardsPanel selection={selectedManufacturer ? { kind: "manufacturer", manufacturer: selectedManufacturer } : null} />
     </div>
   );
 }

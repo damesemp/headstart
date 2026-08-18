@@ -6,6 +6,14 @@ export const TABLES = {
   COMPETITOR_TRIGGERS: process.env.AIRTABLE_COMPETITOR_TRIGGERS_TABLE_ID,
   HOTSPOTS: process.env.AIRTABLE_HOTSPOTS_TABLE_ID,
   VIDEOS: process.env.AIRTABLE_VIDEOS_TABLE_ID,
+  // Added 18 Aug 2026 for the nav rearchitecture — Industry > Segment >
+  // Type > System > Application Area taxonomy that drives the flyout.
+  // Table IDs are stable and confirmed live against the base; used as a
+  // fallback so this doesn't silently break if the env var isn't set in
+  // Vercel. Set the env var to override without a code change.
+  SEGMENTS: process.env.AIRTABLE_SEGMENTS_TABLE_ID || "tbl0gAE9zJpNath0Q",
+  TYPES: process.env.AIRTABLE_TYPES_TABLE_ID || "tblJxyqfDeygPaEYD",
+  APPLICATION_AREAS: process.env.AIRTABLE_APPLICATION_AREAS_TABLE_ID || "tblZAviGraX2g9vO2",
 };
 
 // Field IDs, not names — matches the project rule that the live site must
@@ -78,6 +86,9 @@ export const FIELDS = {
     LABEL_Y: "fldIXgZ7aEeUd9LJO",
     LABEL_SIDE: "fldVaTm8r4NGXSTum",
     DEVICE_VARIANT: "fldy0FnATnScnAg6v",
+    // Added 18 Aug 2026 — links this hotspot to its Application Area
+    // (Industry/Segment/System/Application Area path) for the flyout.
+    APPLICATION_AREAS: "fld1BzL7GFuCkoFSh",
   },
   VIDEOS: {
     APPLICATION_MODEL: "fldtDwenmLLaehnCP",
@@ -85,6 +96,28 @@ export const FIELDS = {
     DESCRIPTION: "fld34XmU8eDTx9DEz",
     FILE_URL: "fldPRwARIpJDFiGVs",
     INTERNAL_ONLY: "fld1jwNlRxY6py42s",
+  },
+  // Added 18 Aug 2026 for the nav rearchitecture. Segment/Type fields are
+  // singleSelect on the live schema — the raw Airtable REST API (used
+  // here) returns those as plain option-name strings, not {id,name}
+  // objects, same as Hotspots' Label Side (see hotspotShape comment).
+  SEGMENTS: {
+    SEGMENT_NAME: "fldr9NdTEvIyP9zOO",
+    INDUSTRY: "fld584NZqXNEn2Kuv",
+    HAS_DIAGRAM: "fldj7NsPLOhktRhui",
+  },
+  TYPES: {
+    TYPE_NAME: "fldh7bbD34jz0FW7x",
+    SEGMENT: "fld5ki4fNtyattr4B",
+  },
+  APPLICATION_AREAS: {
+    FULL_PATH: "fld71trL4N7jI30nj",
+    INDUSTRY: "fld5EoejxadpNNdmv",
+    SEGMENT: "fldjxc8vNey6YByBU",
+    SYSTEM: "fld1jslYqwO6UfRGL",
+    APPLICATION_AREA: "fldgLxkDOjbL5KRhs",
+    RELEVANT_TYPES: "fldiDfpGcAhOL5Ba4",
+    LINKED_HOTSPOTS: "fldsHs3tIUWpciSOd",
   },
 };
 
