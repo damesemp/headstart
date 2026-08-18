@@ -322,6 +322,19 @@ body {
   margin-top: 2px;
 }
 
+.hs-mfr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.hs-mfr-card {
+  padding: 14px 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: #161616;
+}
+
 .hs-dir-mrow {
   padding: 10px 0;
   border-bottom: 1px solid #202020;

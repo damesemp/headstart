@@ -83,15 +83,15 @@ export default function ManufacturerDirectory() {
           />
         </div>
       </div>
-      <div style={{ padding: "18px 24px", maxWidth: 780 }}>
+      <div style={{ padding: "18px 24px" }}>
         {manufacturers.length === 0 && (
           <div className="hs-dir-empty">No manufacturers found</div>
         )}
-        {manufacturers.map((m) => {
-          const apps = Array.from(appsByManufacturer[m.id] || []);
-          return (
-            <div className="hs-dir-mrow" key={m.id} style={{ alignItems: "flex-start" }}>
-              <div>
+        <div className="hs-mfr-grid">
+          {manufacturers.map((m) => {
+            const apps = Array.from(appsByManufacturer[m.id] || []);
+            return (
+              <div className="hs-mfr-card" key={m.id}>
                 <div className="hs-dir-mname">{m.name}</div>
                 {m.linecardCategory && (
                   <div className="hs-dir-msub">{m.linecardCategory}</div>
@@ -101,9 +101,9 @@ export default function ManufacturerDirectory() {
                 )}
                 <ManufacturerLinks manufacturer={m} />
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
