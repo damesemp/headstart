@@ -1,6 +1,8 @@
+import "./globals.css";
+
 export const metadata = {
-  title: 'Astute Headstart',
-  description: 'Astute Headstart Applications Engine',
+  title: "Astute Headstart",
+  description: "Astute Headstart Applications Engine",
 };
 
 export default function RootLayout({ children }) {
