@@ -567,6 +567,37 @@ body {
   opacity: 1;
 }
 
+.hs-hsmap-varrow {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  flex-wrap: wrap;
+}
+
+.hs-hsmap-vartab {
+  background: #161616;
+  border: 1px solid var(--card-border);
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.hs-hsmap-vartab:hover {
+  color: #fff;
+  border-color: #555;
+}
+
+.hs-hsmap-vartab.hs-on {
+  background: var(--astute-orange);
+  border-color: var(--astute-orange);
+  color: #111;
+}
+
 .hs-hsmap-backrow {
   padding: 12px 16px;
   border-top: 1px solid var(--card-border);
@@ -672,4 +703,147 @@ body {
   font-size: 12px;
   color: #ccc;
   line-height: 1.55;
+}
+
+/* Embedded PC diagram — Step 4. Light stage, matching the reference file's
+   corrected --stage-light background, distinct from the dark hotspot map. */
+.hs-pc-wrap {
+  background: #f2f1ed;
+  color: #2c2c2a;
+  padding: 20px 24px 32px;
+  min-height: calc(100vh - 76px);
+}
+
+.hs-pc-note {
+  font-size: 12px;
+  color: #6a6a66;
+  margin-bottom: 18px;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.hs-pc-band {
+  margin-bottom: 14px;
+}
+
+.hs-pc-mid {
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  gap: 14px;
+  align-items: start;
+}
+
+.hs-pc-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hs-pc-centre {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hs-pc-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.hs-pc-box {
+  background: var(--pc-bg);
+  border: 1.5px solid var(--pc-accent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.hs-pc-box:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.hs-pc-box.hs-pc-anchor {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  border-width: 2.5px;
+}
+
+.hs-pc-box.hs-pc-companion {
+  box-shadow: 0 0 0 3px var(--pc-subbg);
+}
+
+.hs-pc-box-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pc-text);
+}
+
+.hs-pc-box-head p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #6a6a66;
+}
+
+.hs-pc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.hs-pc-chip {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pc-text);
+  background: var(--pc-subbg);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.hs-pc-chip-more {
+  color: #6a6a66;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.hs-pc-full {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hs-pc-subbox {
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.hs-pc-subbox-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--pc-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+}
+
+.hs-pc-subbox-names {
+  font-size: 11px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.hs-pc-wrap .hs-hsmap-backrow {
+  border-top: none;
+  padding: 18px 0 0;
+}
+
+.hs-pc-wrap .hs-dir-openmap {
+  color: #6a6a66;
+}
+
+.hs-pc-wrap .hs-dir-openmap:hover {
+  color: #2c2c2a;
 }

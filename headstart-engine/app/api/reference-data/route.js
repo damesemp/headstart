@@ -13,6 +13,9 @@ function manufacturerShape(record) {
     name: f[FIELDS.MANUFACTURERS.NAME] || "",
     tier: f[FIELDS.MANUFACTURERS.TIER] ?? null,
     linecardCategory: f[FIELDS.MANUFACTURERS.LINECARD_CATEGORY] || null,
+    // Step 4 — Embedded PC diagram. Raw Airtable REST API returns
+    // multipleSelects fields as a plain array of option-name strings.
+    subcategory: f[FIELDS.MANUFACTURERS.SUBCATEGORY] || [],
     shortDescription: f[FIELDS.MANUFACTURERS.SHORT_DESCRIPTION] || "",
     longDescription: f[FIELDS.MANUFACTURERS.LONG_DESCRIPTION] || "",
     keyProducts: f[FIELDS.MANUFACTURERS.KEY_PRODUCTS] || "",

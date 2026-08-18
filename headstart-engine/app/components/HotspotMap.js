@@ -14,13 +14,22 @@ import Link from "next/link";
 // separate Application Models table and can't be trusted for this — see
 // app/lib/airtable.js FIELDS.HOTSPOTS.APPLICATION_MODEL comment).
 //
-// Device image is an interim embedded base64 data URI (app/lib/deviceImages.js),
+// Device image(s) are interim embedded base64 data URIs (app/lib/deviceImages.js),
 // extracted directly from the offline reference file. This is a known,
 // flagged compromise — proper permanent storage (Vercel Blob) is still
 // outstanding, see HEADSTART_MASTER_HANDOVER.md.
-export default function HotspotMap({ applicationModel, imageSrc, backLabel }) {
+//
+// Some applications have one physical device (Robotics & Automation — pass
+// `imageSrc`); others have several device variants, each with its own image
+// and its own hotspot set (Wearables: Smart Watch/Ring/Glasses; Military
+// Drones - Air: Combat/Surveillance Drone — pass `variantImages`, an object
+// keyed by the exact Device Variant string used in Airtable's Hotspots
+// table). Variant membership is read live from each hotspot's own Device
+// Variant field, not hardcoded here.
+export default function HotspotMap({ applicationModel, imageSrc, variantImages, backLabel }) {
   const [state, setState] = useState({ status: "loading", data: null, error: null });
   const [selectedHotspotId, setSelectedHotspotId] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +84,30 @@ export default function HotspotMap({ applicationModel, imageSrc, backLabel }) {
     });
     return Array.from(seen.values());
   }, [mappingRows, hotspotByHotspotId]);
+
+  // Distinct device variants present, in first-seen order — empty for
+  // single-device applications like Robotics & Automation.
+  const variants = useMemo(() => {
+    const seen = [];
+    hotspotsForApp.forEach((h) => {
+      if (h.deviceVariant && !seen.includes(h.deviceVariant)) seen.push(h.deviceVariant);
+    });
+    return seen;
+  }, [hotspotsForApp]);
+
+  const activeVariant = variants.length ? selectedVariant || variants[0] : null;
+
+  function chooseVariant(v) {
+    setSelectedVariant(v);
+    setSelectedHotspotId(null);
+  }
+
+  const visibleHotspots = useMemo(() => {
+    if (!activeVariant) return hotspotsForApp;
+    return hotspotsForApp.filter((h) => h.deviceVariant === activeVariant);
+  }, [hotspotsForApp, activeVariant]);
+
+  const activeImageSrc = activeVariant ? variantImages?.[activeVariant] : imageSrc;
 
   const rowsForSelected = useMemo(
     () => (selectedHotspotId ? mappingRows.filter((r) => r.hotspotId === selectedHotspotId) : []),
@@ -139,14 +172,28 @@ export default function HotspotMap({ applicationModel, imageSrc, backLabel }) {
 
       <div className="hs-hsmap-layout">
         <div className="hs-hsmap-stage">
+          {variants.length > 1 && (
+            <div className="hs-hsmap-varrow">
+              {variants.map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  className={"hs-hsmap-vartab" + (v === activeVariant ? " hs-on" : "")}
+                  onClick={() => chooseVariant(v)}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="hs-hsmap-imgwrap">
             <img
-              src={imageSrc}
-              alt={applicationModel}
+              src={activeImageSrc}
+              alt={activeVariant ? `${applicationModel} — ${activeVariant}` : applicationModel}
               className="hs-hsmap-img"
               style={zoomStyle}
             />
-            {hotspotsForApp.map((h) => (
+            {visibleHotspots.map((h) => (
               <button
                 key={h.hotspotId}
                 type="button"

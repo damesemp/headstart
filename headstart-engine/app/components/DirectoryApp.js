@@ -22,12 +22,26 @@ import ManufacturerLinks from "./ManufacturerLinks";
 //    build skips the Industry column for now: Applications, Areas, Results.
 //
 // Step 4 — "Open map" now links to a real hotspot map page for
-// applications that have one built. Only Robotics & Automation exists so
-// far (first build target, 18 August 2026); the rest fall back to the
-// existing in-page drill-down until their maps are built.
+// applications that have one built. Keys must match Application Mapping's
+// Application Model string exactly — confirmed live 18 August: Military
+// Drones' real value is "Military Drones - Air", not "Military Drones".
+// Embedded PC has no hotspots (Section 3) so it never reaches this lookup
+// via the "Open map" button path — it gets its own Directory card, wired
+// in separately below.
 const HOTSPOT_MAP_ROUTES = {
   "Robotics & Automation": "/applications/robotics-automation",
+  "Wearables": "/applications/wearables",
+  "Military Drones - Air": "/applications/military-drones",
+  "Embedded PC": "/applications/embedded-pc",
 };
+
+// Embedded PC has no Application Mapping rows or hotspots at all (Section 3
+// of the master handover — it's absent from Application Maps' taxonomy
+// entirely, synthesised at runtime from all 157 manufacturers grouped by
+// category instead). It can't be discovered from dirData/videosByApp like
+// every other application, so it's added to the Directory's app list
+// explicitly here, purely so it has a card and a working "Open map" link.
+const EXTRA_DIRECTORY_APPS = ["Embedded PC"];
 
 function buildDirData(mapping) {
   const dir = {};
@@ -92,7 +106,7 @@ export default function DirectoryApp() {
   }, [state.data]);
 
   const apps = useMemo(() => {
-    const names = new Set([...Object.keys(dirData), ...Object.keys(videosByApp)]);
+    const names = new Set([...Object.keys(dirData), ...Object.keys(videosByApp), ...EXTRA_DIRECTORY_APPS]);
     return Array.from(names).sort();
   }, [dirData, videosByApp]);
 
@@ -217,14 +231,16 @@ export default function DirectoryApp() {
                 >
                   <div className="hs-dir-acard-name">{app}</div>
                   <div className="hs-dir-acard-ct">
-                    {total > 0
+                    {app === "Embedded PC"
+                      ? "All Astute categories"
+                      : total > 0
                       ? `${total} manufacturer${total === 1 ? "" : "s"}`
                       : hasVideo
                       ? "No hotspot map yet"
                       : "0 manufacturers"}
                   </div>
                   <div className="hs-dir-acard-actions">
-                    {total > 0 && HOTSPOT_MAP_ROUTES[app] && (
+                    {HOTSPOT_MAP_ROUTES[app] && (total > 0 || app === "Embedded PC") && (
                       <Link
                         href={HOTSPOT_MAP_ROUTES[app]}
                         className="hs-dir-openmap"

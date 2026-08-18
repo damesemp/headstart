@@ -20,6 +20,9 @@ export const FIELDS = {
     NAME: "fldm8DT9H7aFpY6rz",
     TIER: "fldqNlm3wkIIkvqQm",
     LINECARD_CATEGORY: "fldZVBYb9KyJMRiQE",
+    // Added for the Embedded PC diagram (Step 4) — real subcategory chips
+    // per category, e.g. Semiconductor & IC Solutions' many sub-groupings.
+    SUBCATEGORY: "fldUXqgBTIsGtmfqv",
     SHORT_DESCRIPTION: "fldJfisC84i6FE9Ir",
     LONG_DESCRIPTION: "fldkYkeYbIDVa2SH4",
     KEY_PRODUCTS: "fldv07pjCmuPLj2vR",
