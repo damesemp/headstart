@@ -49,6 +49,7 @@ export async function airtableFetchAll(tableId, { filterByFormula } = {}) {
 
   do {
     const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${tableId}`);
+    url.searchParams.set("returnFieldsByFieldId", "true");
     if (filterByFormula) url.searchParams.set("filterByFormula", filterByFormula);
     if (offset) url.searchParams.set("offset", offset);
 

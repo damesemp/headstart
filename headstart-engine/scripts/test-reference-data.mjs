@@ -8,6 +8,7 @@ async function fetchAll(tableId, filterByFormula) {
   let offset;
   do {
     const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${tableId}`);
+    url.searchParams.set("returnFieldsByFieldId", "true");
     if (filterByFormula) url.searchParams.set("filterByFormula", filterByFormula);
     if (offset) url.searchParams.set("offset", offset);
     const res = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
