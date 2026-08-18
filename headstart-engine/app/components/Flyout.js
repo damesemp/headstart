@@ -18,7 +18,7 @@ function Column({ title, children }) {
   );
 }
 
-function Row({ active = false, disabled = false, meta, onClick, children, className = "" }) {
+function Row({ active = false, disabled = false, showArrow = !disabled, meta, onClick, children, className = "" }) {
   return (
     <button
       type="button"
@@ -32,12 +32,34 @@ function Row({ active = false, disabled = false, meta, onClick, children, classN
         <span>{children}</span>
         {meta && <span className="hs-flyout-row-meta">{meta}</span>}
       </span>
-      {!disabled && <span className="hs-flyout-arrow">›</span>}
+      {showArrow && <span className="hs-flyout-arrow">›</span>}
     </button>
   );
 }
 
-export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer, resetSignal }) {
+function RowAction({ children, onClick }) {
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      style={{ color: "var(--astute-orange)", cursor: "pointer" }}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        onClick();
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer, onWatchVideo, resetSignal }) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState("embedded-pc");
   const [industry, setIndustry] = useState(null);
@@ -67,6 +89,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
   const applicationAreas = data?.applicationAreas || [];
   const hotspots = data?.hotspots || [];
   const applicationMapping = data?.applicationMapping || [];
+  const videos = data?.videos || [];
 
   const hotspotByRecordId = useMemo(
     () => Object.fromEntries(hotspots.map((hotspot) => [hotspot.id, hotspot])),
@@ -470,13 +493,15 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
               <Column title="Segment">
                 {visibleSegments.map((segment) => {
                   const app = appForSegment(segment.name);
-                  const disabled = !segment.hasDiagram || !app;
+                  const unavailable = !segment.hasDiagram || !app;
+                  const hasTypes = types.some((type) => type.segment === segment.name);
+                  const disabled = unavailable && !hasTypes;
                   return (
                     <Row
                       key={segment.id}
                       active={segmentName === segment.name}
                       disabled={disabled}
-                      meta={disabled ? "No hotspot map yet" : null}
+                      meta={unavailable ? "No hotspot map yet" : null}
                       onClick={() => selectSegment(segment)}
                     >
                       {segment.name}
@@ -488,11 +513,39 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
 
             {mode === "industry" && selectedSegment && !appForSegment(selectedSegment.name)?.standalone && (
               <Column title="Type">
-                {visibleTypes.map((type) => (
-                  <Row key={type.id} active={typeId === type.id} onClick={() => selectType(type)}>
-                    {type.name}
-                  </Row>
-                ))}
+                {visibleTypes.map((type) => {
+                  const app = appForSegment(segmentName);
+                  const hasMap = !!app && segmentByName[segmentName]?.hasDiagram;
+                  const video = videos.find(
+                    (candidate) =>
+                      !candidate.internalOnly && candidate.fileUrl && candidate.typeIds?.includes(type.id)
+                  );
+                  return (
+                    <Row
+                      key={type.id}
+                      active={typeId === type.id}
+                      disabled={!hasMap && !video}
+                      showArrow={hasMap}
+                      className={!hasMap ? "hs-flyout-disabled" : ""}
+                      onClick={hasMap ? () => selectType(type) : undefined}
+                      meta={
+                        <span style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
+                          {!hasMap && <span>No hotspot map yet</span>}
+                          {hasMap && (
+                            <RowAction onClick={() => onGo({ view: app.view, hotspotId: null, variant: type.name })}>
+                              Open map ↗
+                            </RowAction>
+                          )}
+                          {video && (
+                            <RowAction onClick={() => onWatchVideo(video)}>▶ Watch introduction</RowAction>
+                          )}
+                        </span>
+                      }
+                    >
+                      {type.name}
+                    </Row>
+                  );
+                })}
               </Column>
             )}
 

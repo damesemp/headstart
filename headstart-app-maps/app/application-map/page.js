@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import VideosTab from "./VideosTab";
 
 const ACCENT = "#3EC2CF";
 const ACCENT_DARK = "#0d838d";
@@ -37,6 +38,28 @@ const styles = {
     textTransform: "uppercase"
   },
   body: { padding: "26px 28px 30px", color: INK },
+  tabs: {
+    display: "flex",
+    gap: 4,
+    padding: "10px 12px 0",
+    background: "#f7f6f3",
+    borderBottom: "1px solid #e4e2dc"
+  },
+  tab: {
+    flex: 1,
+    border: "none",
+    borderBottomWidth: 3,
+    borderBottomStyle: "solid",
+    borderBottomColor: "transparent",
+    background: "transparent",
+    color: "#77746c",
+    padding: "11px 12px 10px",
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    cursor: "pointer"
+  },
   label: {
     display: "block",
     fontSize: 12,
@@ -347,6 +370,7 @@ function MultiPicker({ label, placeholder, options, selected, onAdd, onRemove, a
 }
 
 export default function ApplicationMapPage() {
+  const [activeTab, setActiveTab] = useState("maps");
   const [refData, setRefData] = useState(null);
   const [refError, setRefError] = useState(null);
   const [lastLoadedAt, setLastLoadedAt] = useState(null);
@@ -607,7 +631,36 @@ export default function ApplicationMapPage() {
             <span style={styles.title}>Headstart Application Maps</span>
           </div>
 
+          <div style={styles.tabs} role="tablist" aria-label="Application Maps tools">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "maps"}
+              style={{
+                ...styles.tab,
+                ...(activeTab === "maps" ? { color: ACCENT_DARK, borderBottomColor: ACCENT } : {})
+              }}
+              onClick={() => setActiveTab("maps")}
+            >
+              Application Maps
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "videos"}
+              style={{
+                ...styles.tab,
+                ...(activeTab === "videos" ? { color: ACCENT_DARK, borderBottomColor: ACCENT } : {})
+              }}
+              onClick={() => setActiveTab("videos")}
+            >
+              Videos
+            </button>
+          </div>
+
           <div style={styles.body}>
+            {activeTab === "maps" ? (
+              <>
             <p style={{ fontSize: 13, color: "#5b5952", margin: "0 0 22px", lineHeight: 1.5 }}>
               Select Industry, Segment and Type, then add the Application area, Manufacturer and product details below.
             </p>
@@ -854,6 +907,10 @@ export default function ApplicationMapPage() {
               >
                 {status.text}
               </div>
+            )}
+              </>
+            ) : (
+              <VideosTab types={refData.types} />
             )}
           </div>
         </div>

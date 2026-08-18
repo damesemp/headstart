@@ -36,12 +36,15 @@ function NumberedLines({ value }) {
 }
 
 export default function CardsPanel({ selection, onResetSelection }) {
-  const [chipSelection, setChipSelection] = useState({ hotspotId: null, manufacturerId: null });
+  const [chipSelection, setChipSelection] = useState({ selectionKey: null, manufacturerId: null });
 
   const manufacturerEntries = useMemo(() => {
     if (!selection) return [];
     if (selection.kind === "manufacturer") {
       return [{ manufacturer: selection.manufacturer, row: null }];
+    }
+    if (selection.kind === "subcategory") {
+      return selection.manufacturers.map((manufacturer) => ({ manufacturer, row: null }));
     }
     const seen = new Map();
     selection.rows.forEach((row) => {
@@ -54,9 +57,17 @@ export default function CardsPanel({ selection, onResetSelection }) {
   }, [selection]);
 
   const hotspotId = selection?.kind === "hotspot" ? selection.hotspot.id : null;
+  const selectionKey =
+    selection?.kind === "hotspot"
+      ? `hotspot:${hotspotId}`
+      : selection?.kind === "subcategory"
+      ? `subcategory:${selection.category}:${selection.subcategory}`
+      : selection?.kind === "manufacturer"
+      ? `manufacturer:${selection.manufacturer.id}`
+      : null;
   const validChipSelection =
-    hotspotId &&
-    chipSelection.hotspotId === hotspotId &&
+    selectionKey &&
+    chipSelection.selectionKey === selectionKey &&
     manufacturerEntries.some((entry) => entry.manufacturer.id === chipSelection.manufacturerId);
   const activeManufacturerId = validChipSelection
     ? chipSelection.manufacturerId
@@ -65,10 +76,20 @@ export default function CardsPanel({ selection, onResetSelection }) {
     manufacturerEntries.find((entry) => entry.manufacturer.id === activeManufacturerId) || manufacturerEntries[0] || null;
   const manufacturer = activeEntry?.manufacturer || null;
   const mappingRow = activeEntry?.row || null;
-  const questions = mappingRow?.questions || selection?.sharedQuestions || "";
-  const nextActions = mappingRow?.nextActions || selection?.sharedNextActions || "";
+  // Embedded PC has no subcategory records/fields in Airtable. These are the
+  // documented template-only exception until a Subcategories table exists.
+  const subcategoryQuestions = selection?.kind === "subcategory"
+    ? `Which manufacturer within ${selection.subcategory} is being considered?\nIs this requirement driven by performance, availability, lifecycle or cost?`
+    : "";
+  const subcategoryNextActions = selection?.kind === "subcategory"
+    ? "Select a specific franchise below to show its positioning and product data."
+    : "";
+  const questions = mappingRow?.questions || subcategoryQuestions || selection?.sharedQuestions || "";
+  const nextActions = mappingRow?.nextActions || subcategoryNextActions || selection?.sharedNextActions || "";
   const categoryLine = manufacturer
-    ? [manufacturer.linecardCategory, ...(manufacturer.subcategory || [])].filter(Boolean).join(" · ")
+    ? selection?.kind === "subcategory"
+      ? [selection.category, selection.subcategory].join(" · ")
+      : [manufacturer.linecardCategory, ...(manufacturer.subcategory || [])].filter(Boolean).join(" · ")
     : "";
   const details = manufacturer
     ? [manufacturer.shortDescription, manufacturer.longDescription].filter(hasValue)
@@ -76,7 +97,7 @@ export default function CardsPanel({ selection, onResetSelection }) {
   const whyThisManufacturerFits = mappingRow?.whyThisLineFits || manufacturer?.coreAdvantages || "";
 
   function resetSelection() {
-    setChipSelection({ hotspotId: null, manufacturerId: null });
+    setChipSelection({ selectionKey: null, manufacturerId: null });
     onResetSelection();
   }
 
@@ -103,31 +124,43 @@ export default function CardsPanel({ selection, onResetSelection }) {
         </div>
       ) : (
         <div className="hs-card-content">
-          {selection.kind === "hotspot" && (
-            <Section heading="Selected Area" value={selection.hotspot.label} className="hs-card-selected-area">
-              <div className="hs-card-title">{selection.hotspot.label}</div>
+          {(selection.kind === "hotspot" || selection.kind === "subcategory") && (
+            <Section
+              heading="Selected Area"
+              value={selection.kind === "hotspot" ? selection.hotspot.label : selection.subcategory}
+              className="hs-card-selected-area"
+            >
+              <div className="hs-card-title">
+                {selection.kind === "hotspot" ? selection.hotspot.label : selection.subcategory}
+              </div>
             </Section>
           )}
 
           {manufacturerEntries.length > 0 && (
             <Section heading="Relevant Astute Lines" value={manufacturerEntries}>
-              <div className="hs-card-chips">
-                {manufacturerEntries.map((entry) => (
-                  <button
-                    key={entry.manufacturer.id}
-                    type="button"
-                    className={`hs-card-chip${entry.manufacturer.id === activeManufacturerId ? " hs-on" : ""}`}
-                    onClick={() =>
-                      setChipSelection({
-                        hotspotId,
-                        manufacturerId: entry.manufacturer.id,
-                      })
-                    }
-                  >
-                    {entry.manufacturer.name}
-                  </button>
-                ))}
-              </div>
+              {selection.kind === "subcategory" ? (
+                <div className="hs-card-copy">
+                  {manufacturerEntries.map((entry) => entry.manufacturer.name).join(", ")}
+                </div>
+              ) : (
+                <div className="hs-card-chips">
+                  {manufacturerEntries.map((entry) => (
+                    <button
+                      key={entry.manufacturer.id}
+                      type="button"
+                      className={`hs-card-chip${entry.manufacturer.id === activeManufacturerId ? " hs-on" : ""}`}
+                      onClick={() =>
+                        setChipSelection({
+                          selectionKey,
+                          manufacturerId: entry.manufacturer.id,
+                        })
+                      }
+                    >
+                      {entry.manufacturer.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </Section>
           )}
 
@@ -135,20 +168,60 @@ export default function CardsPanel({ selection, onResetSelection }) {
             <>
               <div className="hs-card-group-label">Target</div>
 
+              {selection.kind === "subcategory" && (
+                <Section
+                  heading={selection.subcategory}
+                  value={`${manufacturerEntries.length} franchises found under ${selection.category}.`}
+                />
+              )}
+
               <Section heading="Astute Franchise" value={manufacturer.name}>
                 <div className="hs-card-title">{manufacturer.name}</div>
                 {categoryLine && <div className="hs-card-category">{categoryLine}</div>}
+                {selection.kind === "subcategory" && (
+                  <div className="hs-card-chips hs-card-franchise-chips">
+                    {manufacturerEntries.map((entry) => (
+                      <button
+                        key={entry.manufacturer.id}
+                        type="button"
+                        className={`hs-card-chip${entry.manufacturer.id === activeManufacturerId ? " hs-on" : ""}`}
+                        onClick={() =>
+                          setChipSelection({
+                            selectionKey,
+                            manufacturerId: entry.manufacturer.id,
+                          })
+                        }
+                      >
+                        {entry.manufacturer.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </Section>
 
-              <Section heading="Manufacturer Headline" value={manufacturer.headline} />
-
-              <Section heading="Manufacturer Details" value={details}>
-                <div className="hs-card-copy">
-                  {details.map((paragraph, index) => (
-                    <p key={`${index}-${paragraph}`}>{paragraph}</p>
-                  ))}
-                </div>
-              </Section>
+              {selection.kind === "subcategory" ? (
+                <>
+                  <Section heading="Manufacturer Details" value={details}>
+                    <div className="hs-card-copy">
+                      {details.map((paragraph, index) => (
+                        <p key={`${index}-${paragraph}`}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </Section>
+                  <Section heading="Manufacturer Headline" value={manufacturer.headline} />
+                </>
+              ) : (
+                <>
+                  <Section heading="Manufacturer Headline" value={manufacturer.headline} />
+                  <Section heading="Manufacturer Details" value={details}>
+                    <div className="hs-card-copy">
+                      {details.map((paragraph, index) => (
+                        <p key={`${index}-${paragraph}`}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </Section>
+                </>
+              )}
 
               <Section heading="Why This Manufacturer Fits" value={whyThisManufacturerFits} />
               <Section heading="Key Products" value={manufacturer.keyProducts} />

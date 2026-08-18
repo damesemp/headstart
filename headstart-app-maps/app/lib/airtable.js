@@ -5,6 +5,8 @@ export const TABLES = {
   APPLICATION_AREAS: "tblZAviGraX2g9vO2",
   APPLICATION_MAPPING: "tblL0yz7X2bKBXY2M",
   APPLICATION_MAP_REQUESTS: "tbltYrKYfGVkWwdR1",
+  TYPES: "tblJxyqfDeygPaEYD",
+  VIDEOS: "tblfCbuW1bZtnZrAF",
 };
 
 export const FIELDS = {
@@ -32,11 +34,18 @@ export const FIELDS = {
     STATUS: "fldVppAE7ff94JzNW",
     PROPOSED_NEW_AREA: "fldDLkXsTccQTNVo9",
   },
+  VIDEOS: {
+    TYPE: "fldLrbERhAAunyes6",
+    TITLE: "fldpfByLgopvjvD79",
+    DESCRIPTION: "fld34XmU8eDTx9DEz",
+    FILE_URL: "fldPRwARIpJDFiGVs",
+    INTERNAL_ONLY: "fld1jwNlRxY6py42s",
+  },
 };
 
 export async function airtableFetch(path, options = {}) {
-  const token = process.env.AIRTABLE_TOKEN;
-  if (!token) throw new Error("AIRTABLE_TOKEN is not set");
+  const token = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
+  if (!token) throw new Error("AIRTABLE_TOKEN or AIRTABLE_API_KEY is not set");
   const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}${path}`, {
     ...options,
     headers: {

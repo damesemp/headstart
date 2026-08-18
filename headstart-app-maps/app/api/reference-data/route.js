@@ -35,7 +35,8 @@ async function airtableList(baseId, tableId, apiKey, params = "") {
 }
 
 export async function GET() {
-  const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_MANUFACTURERS_TABLE_ID } = process.env;
+  const { AIRTABLE_BASE_ID, AIRTABLE_MANUFACTURERS_TABLE_ID } = process.env;
+  const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TOKEN;
 
   try {
     const [typeRecords, areaRecords, mfrRecords, segmentRecords] = await Promise.all([

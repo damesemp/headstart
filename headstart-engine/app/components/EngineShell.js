@@ -5,6 +5,7 @@ import Flyout from "./Flyout";
 import SplashScreen from "./SplashScreen";
 import HotspotMap from "./HotspotMap";
 import EmbeddedPCMap from "./EmbeddedPCMap";
+import VideoModal from "./VideoModal";
 import {
   ROBOTICS_AUTOMATION_IMAGE_SRC,
   SMART_WATCH_IMAGE_SRC,
@@ -45,8 +46,11 @@ export default function EngineShell() {
   const [view, setView] = useState("embedded-pc");
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const [pendingHotspotId, setPendingHotspotId] = useState(null);
+  const [pendingVariant, setPendingVariant] = useState(null);
   const [urlHotspotId, setUrlHotspotId] = useState(null);
+  const [urlVariant, setUrlVariant] = useState(null);
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
+  const [activeVideo, setActiveVideo] = useState(null);
   const [resetSignal, setResetSignal] = useState(0);
   const [splashDismissed, setSplashDismissed] = useState(true); // avoid a flash before the session check runs
 
@@ -79,11 +83,16 @@ export default function EngineShell() {
     const params = new URLSearchParams(window.location.search);
     const app = params.get("app");
     const hotspot = params.get("hotspot");
+    const variant = params.get("variant");
     if (app && APP_TITLES[app]) {
       setView(app);
       if (hotspot) {
         setPendingHotspotId(hotspot);
         setUrlHotspotId(hotspot);
+      }
+      if (variant) {
+        setPendingVariant(variant);
+        setUrlVariant(variant);
       }
     }
   }, []);
@@ -97,27 +106,33 @@ export default function EngineShell() {
   // routes) so the current view is shareable/bookmarkable.
   useEffect(() => {
     const params = new URLSearchParams();
-    if (view !== "embedded-pc" || urlHotspotId) {
+    if (view !== "embedded-pc" || urlHotspotId || urlVariant) {
       params.set("app", view);
       if (urlHotspotId) params.set("hotspot", urlHotspotId);
+      if (urlVariant) params.set("variant", urlVariant);
     }
     const qs = params.toString();
     const url = qs ? `/?${qs}` : "/";
     window.history.replaceState(null, "", url);
-  }, [view, urlHotspotId]);
+  }, [view, urlHotspotId, urlVariant]);
 
-  function handleFlyoutGo({ view: viewKey, hotspotId, keepOpen = false }) {
+  function handleFlyoutGo({ view: viewKey, hotspotId, variant, keepOpen = false }) {
     setView(viewKey);
     setPendingHotspotId(hotspotId || null);
+    setPendingVariant(variant || null);
     setUrlHotspotId(hotspotId || null);
+    setUrlVariant(variant || null);
     setSelectedManufacturer(null);
+    setActiveVideo(null);
     if (!keepOpen) setFlyoutOpen(false);
   }
 
   function handleFlyoutManufacturer(manufacturer) {
     setView("embedded-pc");
     setPendingHotspotId(null);
+    setPendingVariant(null);
     setUrlHotspotId(null);
+    setUrlVariant(null);
     setSelectedManufacturer(manufacturer);
     setFlyoutOpen(false);
   }
@@ -125,7 +140,9 @@ export default function EngineShell() {
   function resetAll() {
     setView("embedded-pc");
     setPendingHotspotId(null);
+    setPendingVariant(null);
     setUrlHotspotId(null);
+    setUrlVariant(null);
     setSelectedManufacturer(null);
     setFlyoutOpen(false);
     setResetSignal((signal) => signal + 1);
@@ -175,8 +192,11 @@ export default function EngineShell() {
         data={state.data}
         onGo={handleFlyoutGo}
         onSelectManufacturer={handleFlyoutManufacturer}
+        onWatchVideo={setActiveVideo}
         resetSignal={resetSignal}
       />
+
+      {activeVideo && <VideoModal video={activeVideo} onClose={() => setActiveVideo(null)} />}
 
       <div className="hs-main">
         {view === "embedded-pc" ? (
@@ -199,8 +219,13 @@ export default function EngineShell() {
                 : undefined
             }
             pendingHotspotId={pendingHotspotId}
-            onConsumedPending={() => setPendingHotspotId(null)}
+            pendingVariant={pendingVariant}
+            onConsumedPending={() => {
+              setPendingHotspotId(null);
+              setPendingVariant(null);
+            }}
             onHotspotSelectionChange={setUrlHotspotId}
+            onVariantSelectionChange={setUrlVariant}
             resetSignal={resetSignal}
           />
         )}

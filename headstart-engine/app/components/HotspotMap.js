@@ -49,8 +49,10 @@ export default function HotspotMap({
   imageSrc,
   variantImages,
   pendingHotspotId,
+  pendingVariant,
   onConsumedPending,
   onHotspotSelectionChange,
+  onVariantSelectionChange,
   resetSignal,
 }) {
   const [selectedHotspotId, setSelectedHotspotId] = useState(null);
@@ -154,32 +156,48 @@ export default function HotspotMap({
     }
   }
 
-  // Apply a pending "Go ↗" target from the flyout — switch variant if
-  // needed, select the hotspot, zoom to it, then tell the parent it's done
-  // so this doesn't re-fire on every re-render.
+  function chooseVariant(v) {
+    setSelectedVariant(v);
+    setSelectedHotspotId(null);
+    onHotspotSelectionChange(null);
+    onVariantSelectionChange(v);
+    setView({ scale: 1, tx: 0, ty: 0 });
+  }
+
+  // Apply a pending Type variant before any pending hotspot selection. Both
+  // paths reuse chooseVariant so URL state, selection and zoom reset exactly
+  // as they do for a manual variant-tab click.
   useEffect(() => {
-    if (!pendingHotspotId) return;
+    if (!pendingHotspotId && !pendingVariant) return;
+    if (pendingVariant) {
+      if (!variants.length) return;
+      if (!variants.includes(pendingVariant)) {
+        onConsumedPending();
+        return;
+      }
+      if (pendingVariant !== activeVariant) {
+        chooseVariant(pendingVariant);
+        return;
+      }
+    }
+    if (!pendingHotspotId) {
+      onConsumedPending();
+      return;
+    }
     const h = hotspotByHotspotId[pendingHotspotId];
     if (!h) {
       onConsumedPending();
       return;
     }
     if (h.deviceVariant && h.deviceVariant !== activeVariant) {
-      setSelectedVariant(h.deviceVariant);
+      chooseVariant(h.deviceVariant);
       return;
     }
     if (!frameRef.current?.clientWidth || !frameRef.current?.clientHeight) return;
     selectHotspot(pendingHotspotId);
     onConsumedPending();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingHotspotId, hotspotByHotspotId, stageSize, activeVariant]);
-
-  function chooseVariant(v) {
-    setSelectedVariant(v);
-    setSelectedHotspotId(null);
-    onHotspotSelectionChange(null);
-    setView({ scale: 1, tx: 0, ty: 0 });
-  }
+  }, [pendingHotspotId, pendingVariant, hotspotByHotspotId, stageSize, activeVariant, variants]);
 
   function resetView() {
     setSelectedHotspotId(null);

@@ -16,11 +16,13 @@ import CardsPanel from "./CardsPanel";
 // that card via the existing ManufacturerLinks component.
 export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManufacturer, resetSignal }) {
   const [anchor, setAnchor] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [view, setView] = useState({ scale: 1, tx: 0, ty: 0 });
   const frameRef = useRef(null);
 
   useEffect(() => {
     setAnchor(null);
+    setSelectedSubcategory(null);
     setView({ scale: 1, tx: 0, ty: 0 });
   }, [resetSignal]);
 
@@ -39,6 +41,13 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
         cats[cat].subs[sub].push(m);
       });
     });
+    Object.values(cats).forEach((category) => {
+      Object.values(category.subs).forEach((manufacturers) => {
+        manufacturers.sort(
+          (a, b) => (a.tier ?? Number.MAX_SAFE_INTEGER) - (b.tier ?? Number.MAX_SAFE_INTEGER) || a.name.localeCompare(b.name)
+        );
+      });
+    });
     return cats;
   }, [data]);
 
@@ -47,6 +56,36 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
   function resetView() {
     onSelectManufacturer(null);
     setAnchor(null);
+    setSelectedSubcategory(null);
+  }
+
+  function selectSubcategory(categoryName, subcategoryName, manufacturers, element) {
+    onSelectManufacturer(null);
+    setSelectedSubcategory({ category: categoryName, subcategory: subcategoryName, manufacturers });
+
+    const frame = frameRef.current;
+    if (!frame || !element) return;
+    const target = element.closest(".hs-pc-subbox") || element;
+    let x = target.offsetWidth / 2;
+    let y = target.offsetHeight / 2;
+    let node = target;
+    while (node && node !== frame) {
+      x += node.offsetLeft || 0;
+      y += node.offsetTop || 0;
+      node = node.offsetParent;
+    }
+    if (node !== frame) return;
+    const scale = 1.55;
+    setView({
+      scale,
+      tx: -(x - frame.offsetWidth / 2) * scale,
+      ty: -(y - frame.offsetHeight / 2) * scale,
+    });
+  }
+
+  function clearSelection() {
+    onSelectManufacturer(null);
+    setSelectedSubcategory(null);
   }
 
   function renderBox(name) {
@@ -70,6 +109,7 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
         }}
         onClick={(e) => {
           e.stopPropagation();
+          clearSelection();
           setAnchor(isAnchor ? null : name);
         }}
       >
@@ -79,17 +119,45 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
         </div>
         <div className="hs-pc-chips">
           {shown.map((sub) => (
-            <span className="hs-pc-chip" key={sub}>
+            <button
+              type="button"
+              className={
+                "hs-pc-chip" +
+                (selectedSubcategory?.category === name && selectedSubcategory?.subcategory === sub ? " hs-on" : "")
+              }
+              key={sub}
+              onMouseDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                selectSubcategory(name, sub, c.subs[sub], event.currentTarget);
+              }}
+            >
               {sub}
-            </span>
+            </button>
           ))}
           {remaining > 0 && <span className="hs-pc-chip hs-pc-chip-more">+{remaining} more</span>}
         </div>
         {isAnchor && (
           <div className="hs-pc-full">
             {subNames.map((sub) => (
-              <div className="hs-pc-subbox" key={sub}>
-                <div className="hs-pc-subbox-title">{sub}</div>
+              <div
+                className={
+                  "hs-pc-subbox" +
+                  (selectedSubcategory?.category === name && selectedSubcategory?.subcategory === sub ? " hs-on" : "")
+                }
+                key={sub}
+              >
+                <button
+                  type="button"
+                  className="hs-pc-subbox-title"
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    selectSubcategory(name, sub, c.subs[sub], event.currentTarget);
+                  }}
+                >
+                  {sub}
+                </button>
                 <div className="hs-pc-subbox-names">
                   {c.subs[sub].map((m, i) => (
                     <span key={m.id}>
@@ -99,6 +167,7 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setSelectedSubcategory(null);
                           onSelectManufacturer(m);
                         }}
                       >
@@ -149,8 +218,14 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
       </div>
 
       <CardsPanel
-        selection={selectedManufacturer ? { kind: "manufacturer", manufacturer: selectedManufacturer } : null}
-        onResetSelection={() => onSelectManufacturer(null)}
+        selection={
+          selectedSubcategory
+            ? { kind: "subcategory", ...selectedSubcategory }
+            : selectedManufacturer
+            ? { kind: "manufacturer", manufacturer: selectedManufacturer }
+            : null
+        }
+        onResetSelection={clearSelection}
       />
     </div>
   );

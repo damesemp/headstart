@@ -94,6 +94,7 @@ export const FIELDS = {
   },
   VIDEOS: {
     APPLICATION_MODEL: "fldtDwenmLLaehnCP",
+    TYPE: "fldLrbERhAAunyes6",
     TITLE: "fldpfByLgopvjvD79",
     DESCRIPTION: "fld34XmU8eDTx9DEz",
     FILE_URL: "fldPRwARIpJDFiGVs",

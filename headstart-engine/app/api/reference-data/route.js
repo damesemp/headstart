@@ -135,6 +135,7 @@ function videoShape(record) {
   return {
     id: record.id,
     applicationModel: f[FIELDS.VIDEOS.APPLICATION_MODEL] || "",
+    typeIds: f[FIELDS.VIDEOS.TYPE] || [],
     title: f[FIELDS.VIDEOS.TITLE] || "",
     description: f[FIELDS.VIDEOS.DESCRIPTION] || "",
     fileUrl: f[FIELDS.VIDEOS.FILE_URL] || null,
