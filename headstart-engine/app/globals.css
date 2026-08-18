@@ -118,6 +118,34 @@ body {
   color: var(--ink-muted);
 }
 
+.hs-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: 24px;
+}
+
+.hs-topbar-navlink {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+  text-decoration: none;
+  cursor: pointer;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+}
+
+.hs-topbar-navlink:hover {
+  color: #fff;
+}
+
+.hs-topbar-navlink.hs-on {
+  color: #fff;
+  border-bottom-color: var(--astute-orange);
+  cursor: default;
+}
+
 /* Directory */
 .hs-dir {
   display: grid;

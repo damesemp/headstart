@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import ManufacturerLinks from "./ManufacturerLinks";
 
 // Step 3 — Shell and Directory, reading live Airtable data via
@@ -167,6 +168,12 @@ export default function DirectoryApp() {
         <div className="hs-topbar">
           <div className="orange-bar" />
           <span className="headstart-word">Headstart</span>
+          <nav className="hs-topbar-nav">
+            <span className="hs-topbar-navlink hs-on">Directory</span>
+            <Link href="/manufacturers" className="hs-topbar-navlink">
+              Manufacturers
+            </Link>
+          </nav>
           <span className="app-tag">{curApp || "Directory"}</span>
         </div>
 

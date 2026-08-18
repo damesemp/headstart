@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import ManufacturerLinks from "./ManufacturerLinks";
 
 // Manufacturer directory — plain feature list item (HEADSTART_MASTER_HANDOVER.md
@@ -65,6 +66,12 @@ export default function ManufacturerDirectory() {
       <div className="hs-topbar">
         <div className="orange-bar" />
         <span className="headstart-word">Headstart</span>
+        <nav className="hs-topbar-nav">
+          <Link href="/" className="hs-topbar-navlink">
+            Directory
+          </Link>
+          <span className="hs-topbar-navlink hs-on">Manufacturers</span>
+        </nav>
         <span className="app-tag">Manufacturers</span>
       </div>
       <div className="hs-dir-searchrow">
