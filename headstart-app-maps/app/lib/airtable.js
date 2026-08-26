@@ -7,6 +7,8 @@ export const TABLES = {
   APPLICATION_MAP_REQUESTS: "tbltYrKYfGVkWwdR1",
   TYPES: "tblJxyqfDeygPaEYD",
   VIDEOS: "tblfCbuW1bZtnZrAF",
+  HOTSPOTS: "tblMEqAZ4xDcbx16b",
+  SEGMENTS: "tbl0gAE9zJpNath0Q",
 };
 
 export const FIELDS = {
@@ -16,6 +18,31 @@ export const FIELDS = {
   },
   APPLICATION_AREAS: {
     FULL_PATH: "fld71trL4N7jI30nj",
+    SEGMENT: "fldjxc8vNey6YByBU",
+    SYSTEM: "fld1jslYqwO6UfRGL",
+    APPLICATION_AREA: "fldgLxkDOjbL5KRhs",
+  },
+  TYPES: {
+    TYPE_NAME: "fldh7bbD34jz0FW7x",
+    SEGMENT: "fld5ki4fNtyattr4B",
+    APPLICATION_IMAGE_URL: "fldeMBCvQ0yYYE5LD",
+  },
+  // Hotspot mapper. Device Variant is ALWAYS the Type Name -- that string is
+  // the join between Types, their application image, and the Engine's map.
+  // Never let a user type it. Status gates visibility: the Engine renders
+  // only "Live", so everything placed here starts as "Draft".
+  HOTSPOTS: {
+    LABEL: "fldTgNaYTbo59xabZ",
+    HOTSPOT_ID: "fldPVvojgFaqPWLBo",
+    X: "fldMu4vMPUmgtJIRL",
+    Y: "fldetMIPHPsQ9BoYP",
+    SMART_ZOOM: "fldTCU5qAqlA8kwnk",
+    LABEL_X: "fldxqL3GAGxzUmAhz",
+    LABEL_Y: "fldIXgZ7aEeUd9LJO",
+    LABEL_SIDE: "fldVaTm8r4NGXSTum",
+    DEVICE_VARIANT: "fldy0FnATnScnAg6v",
+    APPLICATION_AREAS: "fld1BzL7GFuCkoFSh",
+    STATUS: "fldQjJHxvawIwocKg",
   },
   APPLICATION_MAPPING: {
     APPLICATION_MODEL: "fld5QeFpEx5qKB102",

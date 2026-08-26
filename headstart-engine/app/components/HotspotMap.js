@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ZoomPanStage from "./ZoomPanStage";
 import CardsPanel from "./CardsPanel";
+import { SEGMENT_TO_APP } from "../lib/segmentAppMap";
 
 // Hotspot map — Wearables, Military Drones, Robotics & Automation. Reads
 // live Hotspots + Application Mapping + Manufacturers data, passed down
@@ -105,15 +106,28 @@ export default function HotspotMap({
     [data, applicationModel]
   );
 
-  const hotspotsForApp = useMemo(() => {
-    const seen = new Map();
-    mappingRows.forEach((r) => {
-      if (!r.hotspotId || seen.has(r.hotspotId)) return;
-      const h = hotspotByHotspotId[r.hotspotId];
-      if (h) seen.set(r.hotspotId, h);
-    });
-    return Array.from(seen.values());
-  }, [mappingRows, hotspotByHotspotId]);
+  // Which Types (device variants) belong to this application model. Type
+  // Name and Hotspots' Device Variant are the same string.
+  const variantsForApp = useMemo(() => {
+    const segment = Object.entries(SEGMENT_TO_APP).find(
+      ([, app]) => app.applicationModel === applicationModel
+    )?.[0];
+    return (data.types || []).filter((t) => t.segment === segment).map((t) => t.name);
+  }, [data, applicationModel]);
+
+  // Hotspots come from the Hotspots table, NOT from Application Mapping.
+  // A hotspot is a location on the image and exists whether or not a
+  // manufacturer has been mapped to it yet — which is the normal state for
+  // anything the hotspot mapper has just placed. Deriving them from mapping
+  // rows (as this did until 18 Aug 2026) made every newly placed hotspot
+  // invisible. Status gates visibility: only "Live" ever reaches the site.
+  const hotspotsForApp = useMemo(
+    () =>
+      (data.hotspots || []).filter(
+        (h) => h.status === "Live" && h.deviceVariant && variantsForApp.includes(h.deviceVariant)
+      ),
+    [data, variantsForApp]
+  );
 
   const variants = useMemo(() => {
     const seen = [];

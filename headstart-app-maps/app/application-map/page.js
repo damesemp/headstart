@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import VideosTab from "./VideosTab";
+import HotspotsTab from "./HotspotsTab";
 
 const ACCENT = "#3EC2CF";
 const ACCENT_DARK = "#0d838d";
@@ -617,14 +618,22 @@ export default function ApplicationMapPage() {
 
   return (
     <div style={styles.page}>
-      <div style={{ maxWidth: 640, margin: "0 auto", position: "relative" }}>
+      <div
+        style={{
+          // The hotspot mapper shows a full application image and needs the
+          // room; every other tab keeps the established 640px card.
+          maxWidth: activeTab === "hotspots" ? 1100 : 640,
+          margin: "0 auto",
+          position: "relative"
+        }}
+      >
         {lastLoadedAt && (
           <p style={{ fontSize: 12, color: "#8a8880", textAlign: "right", margin: "0 4px 8px" }}>
             Data loaded at{" "}
             {lastLoadedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </p>
         )}
-        <div style={styles.card}>
+        <div style={{ ...styles.card, maxWidth: activeTab === "hotspots" ? 1100 : styles.card.maxWidth }}>
           <div style={styles.header}>
             <span style={styles.logo}>ASTUTE</span>
             <span style={styles.divider}></span>
@@ -655,6 +664,18 @@ export default function ApplicationMapPage() {
               onClick={() => setActiveTab("videos")}
             >
               Videos
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "hotspots"}
+              style={{
+                ...styles.tab,
+                ...(activeTab === "hotspots" ? { color: ACCENT_DARK, borderBottomColor: ACCENT } : {})
+              }}
+              onClick={() => setActiveTab("hotspots")}
+            >
+              Hotspots
             </button>
           </div>
 
@@ -909,8 +930,10 @@ export default function ApplicationMapPage() {
               </div>
             )}
               </>
-            ) : (
+            ) : activeTab === "videos" ? (
               <VideosTab types={refData.types} />
+            ) : (
+              <HotspotsTab />
             )}
           </div>
         </div>
