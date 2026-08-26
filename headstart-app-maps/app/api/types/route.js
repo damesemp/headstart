@@ -64,8 +64,10 @@ export async function PATCH(request) {
 
     const updated = await airtableFetch(`/${TABLES.TYPES}?returnFieldsByFieldId=true`, {
       method: "PATCH",
+      // returnFieldsByFieldId must be in the body on writes, not just the URL.
       body: JSON.stringify({
         records: [{ id, fields: { [FIELDS.TYPES.APPLICATION_IMAGE_URL]: applicationImageUrl } }],
+        returnFieldsByFieldId: true,
       }),
     });
 

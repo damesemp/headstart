@@ -133,7 +133,12 @@ export async function POST(request) {
 
     const created = await airtableFetch(path(TABLES.HOTSPOTS), {
       method: "POST",
-      body: JSON.stringify({ records: [{ fields }], typecast: false }),
+      // returnFieldsByFieldId works as a query param on reads, but on create
+      // and update it must be in the BODY. Without it Airtable answers with
+      // fields keyed by NAME, hotspotShape reads them by ID, and the caller
+      // gets a record that looks empty -- which then gets saved back over the
+      // real values. This was a real bug, not a precaution.
+      body: JSON.stringify({ records: [{ fields }], typecast: false, returnFieldsByFieldId: true }),
     });
 
     return Response.json({ hotspot: hotspotShape(created.records[0]) });
@@ -156,7 +161,13 @@ export async function PATCH(request) {
       if (value !== undefined) fields[key] = value;
     };
 
-    if (body.label !== undefined) set(FIELDS.HOTSPOTS.LABEL, String(body.label).trim());
+    // A hotspot with no label is useless and unfindable. Refuse rather than
+    // silently storing an empty one.
+    if (body.label !== undefined) {
+      const trimmed = String(body.label).trim();
+      if (!trimmed) return Response.json({ error: "A label is required." }, { status: 400 });
+      set(FIELDS.HOTSPOTS.LABEL, trimmed);
+    }
     if (typeof body.x === "number") set(FIELDS.HOTSPOTS.X, Math.round(body.x * 10) / 10);
     if (typeof body.y === "number") set(FIELDS.HOTSPOTS.Y, Math.round(body.y * 10) / 10);
     if (body.smartZoom !== undefined) set(FIELDS.HOTSPOTS.SMART_ZOOM, Number(body.smartZoom) || 150);
@@ -175,12 +186,26 @@ export async function PATCH(request) {
       set(FIELDS.HOTSPOTS.STATUS, body.status);
     }
 
+    // Guard the one transition that reaches the public site.
+    if (body.status === "Live") {
+      const current = (await allHotspots()).map(hotspotShape).find((h) => h.id === id);
+      const label = fields[FIELDS.HOTSPOTS.LABEL] ?? current?.label;
+      const x = fields[FIELDS.HOTSPOTS.X] ?? current?.x;
+      const y = fields[FIELDS.HOTSPOTS.Y] ?? current?.y;
+      if (!label || !String(label).trim() || typeof x !== "number" || typeof y !== "number") {
+        return Response.json(
+          { error: "This hotspot needs a label and a position before it can go live." },
+          { status: 400 }
+        );
+      }
+    }
+
     if (!Object.keys(fields).length)
       return Response.json({ error: "Nothing to update." }, { status: 400 });
 
     const updated = await airtableFetch(path(TABLES.HOTSPOTS), {
       method: "PATCH",
-      body: JSON.stringify({ records: [{ id, fields }], typecast: false }),
+      body: JSON.stringify({ records: [{ id, fields }], typecast: false, returnFieldsByFieldId: true }),
     });
 
     return Response.json({ hotspot: hotspotShape(updated.records[0]) });
