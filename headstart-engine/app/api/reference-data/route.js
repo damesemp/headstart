@@ -60,6 +60,8 @@ function hotspotShape(record) {
     // Added 18 Aug 2026 — Application Area link(s), used by the flyout's
     // "Go ↗" to jump straight to this hotspot.
     applicationAreaIds: f[FIELDS.HOTSPOTS.APPLICATION_AREAS] || [],
+    // Draft/Live/Archived. The Engine filters on this — see HotspotMap.
+    status: f[FIELDS.HOTSPOTS.STATUS] || null,
   };
 }
 

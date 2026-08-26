@@ -1111,3 +1111,12 @@ body {
   text-align: center;
   padding: 24px;
 }
+
+/* Hotspot with no Application Mapping rows yet — expected state for a
+   newly placed hotspot, not an error. Added 18 Aug 2026. */
+.hs-card-unmapped {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #6f6d67;
+  padding: 4px 0 8px;
+}

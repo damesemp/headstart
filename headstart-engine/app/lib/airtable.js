@@ -91,6 +91,11 @@ export const FIELDS = {
     // Added 18 Aug 2026 — links this hotspot to its Application Area
     // (Industry/Segment/System/Application Area path) for the flyout.
     APPLICATION_AREAS: "fld1BzL7GFuCkoFSh",
+    // Added 18 Aug 2026 — Draft/Live/Archived gate written by the hotspot
+    // mapper. The Engine renders ONLY hotspots whose Status is "Live";
+    // nothing a mapper user places reaches the public site until a reviewer
+    // promotes it. All 30 pre-existing hotspots were set Live on migration.
+    STATUS: "fldQjJHxvawIwocKg",
   },
   VIDEOS: {
     APPLICATION_MODEL: "fldtDwenmLLaehnCP",

@@ -136,6 +136,15 @@ export default function CardsPanel({ selection, onResetSelection }) {
             </Section>
           )}
 
+          {selection.kind === "hotspot" && manufacturerEntries.length === 0 && (
+            // A hotspot with no Application Mapping rows yet. Normal for
+            // anything just placed in the hotspot mapper — say so plainly
+            // rather than rendering an empty card.
+            <div className="hs-card-unmapped">
+              No manufacturers are mapped to this area yet.
+            </div>
+          )}
+
           {manufacturerEntries.length > 0 && (
             <Section heading="Relevant Astute Lines" value={manufacturerEntries}>
               {selection.kind === "subcategory" ? (
