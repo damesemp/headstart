@@ -112,6 +112,10 @@ export const FIELDS = {
   TYPES: {
     TYPE_NAME: "fldh7bbD34jz0FW7x",
     SEGMENT: "fld5ki4fNtyattr4B",
+    // Added 18 Aug 2026 — permanent public Vercel Blob URL for this Type's
+    // application image. Replaces the six base64 data-URIs that used to live
+    // in app/lib/deviceImages.js. Blank for Types with no diagram yet.
+    APPLICATION_IMAGE_URL: "fldeMBCvQ0yYYE5LD",
   },
   APPLICATION_AREAS: {
     FULL_PATH: "fld71trL4N7jI30nj",

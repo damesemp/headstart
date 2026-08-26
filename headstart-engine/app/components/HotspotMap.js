@@ -46,8 +46,6 @@ function renderedBoxFor(cw, ch, imgNatural) {
 export default function HotspotMap({
   data,
   applicationModel,
-  imageSrc,
-  variantImages,
   pendingHotspotId,
   pendingVariant,
   onConsumedPending,
@@ -209,7 +207,20 @@ export default function HotspotMap({
     return hotspotsForApp.filter((h) => h.deviceVariant === activeVariant);
   }, [hotspotsForApp, activeVariant]);
 
-  const activeImageSrc = activeVariant ? variantImages?.[activeVariant] : imageSrc;
+  // Application image comes from Airtable, not from bundled base64. Each Type
+  // carries its own "Application Image URL"; Type Name and Hotspots' Device
+  // Variant are the same string, so the active variant resolves the image
+  // directly. Single-variant maps (Robotics & Automation) fall through the
+  // same path because activeVariant resolves to that one variant.
+  const imageByVariant = useMemo(() => {
+    const map = {};
+    (data.types || []).forEach((t) => {
+      if (t.name && t.applicationImageUrl) map[t.name] = t.applicationImageUrl;
+    });
+    return map;
+  }, [data]);
+
+  const activeImageSrc = activeVariant ? imageByVariant[activeVariant] || null : null;
 
   const rowsForSelected = useMemo(
     () => (selectedHotspotId ? mappingRows.filter((r) => r.hotspotId === selectedHotspotId) : []),
@@ -256,13 +267,19 @@ export default function HotspotMap({
           onReset={resetView}
           className="hs-hsmap-imgwrap"
         >
-          <img
-            key={activeImageSrc}
-            src={activeImageSrc}
-            alt={activeVariant ? `${applicationModel} — ${activeVariant}` : applicationModel}
-            className="hs-hsmap-img"
-            onLoad={(e) => setImgNatural({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
-          />
+          {activeImageSrc ? (
+            <img
+              key={activeImageSrc}
+              src={activeImageSrc}
+              alt={activeVariant ? `${applicationModel} — ${activeVariant}` : applicationModel}
+              className="hs-hsmap-img"
+              onLoad={(e) => setImgNatural({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
+            />
+          ) : (
+            <div className="hs-hsmap-noimg">
+              No application image set for this type yet.
+            </div>
+          )}
           {visibleHotspots.map((h) => {
             const pos = pixelForHotspot(h);
             return (

@@ -6,25 +6,12 @@ import SplashScreen from "./SplashScreen";
 import HotspotMap from "./HotspotMap";
 import EmbeddedPCMap from "./EmbeddedPCMap";
 import VideoModal from "./VideoModal";
-import {
-  ROBOTICS_AUTOMATION_IMAGE_SRC,
-  SMART_WATCH_IMAGE_SRC,
-  SMART_RING_IMAGE_SRC,
-  SMART_GLASSES_IMAGE_SRC,
-  COMBAT_DRONE_IMAGE_SRC,
-  SURVEILLANCE_DRONE_IMAGE_SRC,
-} from "../lib/deviceImages";
 
-const WEARABLES_IMAGES = {
-  "Smart Watch": SMART_WATCH_IMAGE_SRC,
-  "Smart Ring": SMART_RING_IMAGE_SRC,
-  "Smart Glasses": SMART_GLASSES_IMAGE_SRC,
-};
-
-const MILITARY_DRONES_IMAGES = {
-  "Combat Drone": COMBAT_DRONE_IMAGE_SRC,
-  "Surveillance Drone": SURVEILLANCE_DRONE_IMAGE_SRC,
-};
+// Application images are no longer bundled as base64 in the source. Each
+// Type record carries its own "Application Image URL" (a permanent public
+// Vercel Blob link), and HotspotMap resolves the right one from the active
+// device variant — Type Name and Hotspots' Device Variant are the same
+// string. See HEADSTART_BUILD_INSTRUCTIONS_3.md.
 
 const SPLASH_SESSION_KEY = "hs_splash_seen";
 
@@ -210,14 +197,6 @@ export default function EngineShell() {
           <HotspotMap
             data={state.data}
             applicationModel={APP_TITLES[view]}
-            imageSrc={view === "robotics-automation" ? ROBOTICS_AUTOMATION_IMAGE_SRC : undefined}
-            variantImages={
-              view === "wearables"
-                ? WEARABLES_IMAGES
-                : view === "military-drones"
-                ? MILITARY_DRONES_IMAGES
-                : undefined
-            }
             pendingHotspotId={pendingHotspotId}
             pendingVariant={pendingVariant}
             onConsumedPending={() => {

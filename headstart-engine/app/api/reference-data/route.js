@@ -79,6 +79,7 @@ function typeShape(record) {
     id: record.id,
     name: f[FIELDS.TYPES.TYPE_NAME] || "",
     segment: f[FIELDS.TYPES.SEGMENT] || "",
+    applicationImageUrl: f[FIELDS.TYPES.APPLICATION_IMAGE_URL] || null,
   };
 }
 
