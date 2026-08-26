@@ -169,7 +169,9 @@ export default function HotspotMap({
       // near the middle as the picture allows rather than dead centre with
       // empty space beside it — the same rule any map applies.
       setView(
-        clampView({ scale, tx: -deltaX * scale, ty: -deltaY * scale }, frameRef.current)
+        clampView({ scale, tx: -deltaX * scale, ty: -deltaY * scale }, frameRef.current, {
+          content: box,
+        })
       );
     }
   }
@@ -285,6 +287,11 @@ export default function HotspotMap({
           ty={view.ty}
           onChange={setView}
           onReset={resetView}
+          // The picture is letterboxed inside the frame by object-fit: contain,
+          // so the pan bounds must be measured against the picture, not the
+          // frame. Without this a landscape image (both drones) can be dragged
+          // clean off the screen while the frame still covers the stage.
+          content={renderedBox}
           className="hs-hsmap-imgwrap"
         >
           {activeImageSrc ? (
@@ -293,6 +300,11 @@ export default function HotspotMap({
               src={activeImageSrc}
               alt={activeVariant ? `${applicationModel} — ${activeVariant}` : applicationModel}
               className="hs-hsmap-img"
+              // Without this, dragging the picture quickly on a Mac starts the
+              // browser's own image drag — the picture lifts off under a ghost
+              // preview as though you were dragging it out to save it, which is
+              // exactly what it looked like was happening.
+              draggable={false}
               onLoad={(e) => setImgNatural({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
             />
           ) : (

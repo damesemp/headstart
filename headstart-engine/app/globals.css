@@ -713,6 +713,16 @@ body {
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  /* A pan surface, not a document. Without these, dragging across it selects
+     text and — on macOS especially — starts the browser's own image drag. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hs-zoomstage img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .hs-zoomstage-frame {
