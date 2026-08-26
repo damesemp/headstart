@@ -770,6 +770,13 @@ body {
   color: #2c2c2a;
 }
 
+/* At either end of the range the button does nothing, so say so rather than
+   letting it look live and respond to nothing. */
+.hs-zoomstage-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .hs-zoomstage-pct {
   font-size: 11px;
   font-weight: 800;
