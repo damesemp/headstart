@@ -9,6 +9,20 @@ export const TABLES = {
   VIDEOS: "tblfCbuW1bZtnZrAF",
   HOTSPOTS: "tblMEqAZ4xDcbx16b",
   SEGMENTS: "tbl0gAE9zJpNath0Q",
+  APPLICATION_MODELS: "tblZtjJRk54DgLIVw",
+};
+
+// A Hotspot's "Application Model" link is the fourth name the same thing goes
+// by, alongside Segment, Type and view key. Types carry a Segment ("Factory
+// Automation"); Hotspots link to an Application Model ("Robotics &
+// Automation"). Every hotspot created before the mapper carries this link, so
+// the mapper sets it too — otherwise anything grouped by application model
+// quietly omits whatever the mapper placed.
+export const SEGMENT_TO_APPLICATION_MODEL = {
+  Wearables: "Wearables",
+  Air: "Military Drones - Air",
+  "Factory Automation": "Robotics & Automation",
+  "Industrial Computing": "Embedded PC",
 };
 
 export const FIELDS = {
@@ -43,6 +57,14 @@ export const FIELDS = {
     DEVICE_VARIANT: "fldy0FnATnScnAg6v",
     APPLICATION_AREAS: "fld1BzL7GFuCkoFSh",
     STATUS: "fldQjJHxvawIwocKg",
+    APPLICATION_MODEL: "fldjztMJyC7qPKvAr",
+    // Reverse of Application Mapping's own Hotspot link. Read-only as far as
+    // the mapper is concerned, but it is what makes a delete safe or unsafe:
+    // these are the manufacturer matches a BDM submitted against this hotspot.
+    APPLICATION_MAPPING: "fldZM3Fws2rnRlHFA",
+  },
+  APPLICATION_MODELS: {
+    NAME: "fldFvlotvVQngQjXE",
   },
   APPLICATION_MAPPING: {
     APPLICATION_MODEL: "fld5QeFpEx5qKB102",
