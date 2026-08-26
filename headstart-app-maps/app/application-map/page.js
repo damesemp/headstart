@@ -9,6 +9,13 @@ const ACCENT_DARK = "#0d838d";
 const INK = "#212120";
 const PAGE_BG = "#f4f3f0";
 
+// One card width for all three tabs — the tools should look like one
+// application, not three. The mapper needs the room; the two form tabs keep
+// their original 640px column, centred inside the wider card, because a text
+// field stretched to 960px is harder to read, not easier.
+const CARD_WIDTH = 960;
+const FORM_WIDTH = 640;
+
 const styles = {
   page: { background: PAGE_BG, padding: "40px 16px", minHeight: "100vh" },
   card: {
@@ -620,20 +627,31 @@ export default function ApplicationMapPage() {
     <div style={styles.page}>
       <div
         style={{
-          // The hotspot mapper shows a full application image and needs the
-          // room; every other tab keeps the established 640px card.
-          maxWidth: activeTab === "hotspots" ? 1100 : 640,
+          // One width across every tab, so the three tools read as one
+          // application. The forms inside Application Maps and Videos stay
+          // narrow (see styles.body) — a 960px-wide text field is far wider
+          // than anything anyone types into it.
+          maxWidth: CARD_WIDTH,
           margin: "0 auto",
           position: "relative"
         }}
       >
         {lastLoadedAt && (
-          <p style={{ fontSize: 12, color: "#8a8880", textAlign: "right", margin: "0 4px 8px" }}>
+          <p
+            style={{
+              fontSize: 12.5,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              color: "#5b5952",
+              textAlign: "right",
+              margin: "0 4px 8px"
+            }}
+          >
             Data loaded at{" "}
             {lastLoadedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </p>
         )}
-        <div style={{ ...styles.card, maxWidth: activeTab === "hotspots" ? 1100 : styles.card.maxWidth }}>
+        <div style={{ ...styles.card, maxWidth: CARD_WIDTH }}>
           <div style={styles.header}>
             <span style={styles.logo}>ASTUTE</span>
             <span style={styles.divider}></span>
@@ -679,7 +697,16 @@ export default function ApplicationMapPage() {
             </button>
           </div>
 
-          <div style={styles.body}>
+          <div
+            style={{
+              ...styles.body,
+              // The mapper uses the full card; the two form tabs keep their
+              // original column width, centred inside it.
+              ...(activeTab === "hotspots"
+                ? {}
+                : { maxWidth: FORM_WIDTH, marginLeft: "auto", marginRight: "auto" })
+            }}
+          >
             {activeTab === "maps" ? (
               <>
             <p style={{ fontSize: 13, color: "#5b5952", margin: "0 0 22px", lineHeight: 1.5 }}>

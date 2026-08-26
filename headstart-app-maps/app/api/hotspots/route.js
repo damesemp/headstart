@@ -1,18 +1,24 @@
-import { airtableFetch, FIELDS, TABLES } from "../../lib/airtable";
+import { airtableFetch, FIELDS, TABLES, SEGMENT_TO_APPLICATION_MODEL } from "../../lib/airtable";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // Hotspot mapper API.
 //
-// Two rules this route enforces so a UI bug can never violate them:
+// Four rules this route enforces, so a UI bug can never violate them:
 //
-//   1. Device Variant is always set from the selected Type's name, never
-//      from client input. That string is the join between a Type, its
-//      application image and the Engine's map — a typo silently breaks a map.
+//   1. Device Variant is always set from the selected Type's name, never from
+//      client input. That string is the join between a Type, its application
+//      image and the Engine's map — a typo silently breaks a map.
 //   2. Newly created hotspots are always Status "Draft". The Engine renders
 //      only "Live", so nothing placed here can reach the public site until a
 //      reviewer promotes it.
+//   3. A hotspot with Application Mapping rows is never deleted. Those rows
+//      are manufacturer matches a BDM submitted; deleting the hotspot leaves
+//      them in the table attached to nothing — invisible on the site, still
+//      counted in reports. Archive is offered instead, and is reversible.
+//   4. Every hotspot gets its Application Model link, resolved from the Type's
+//      Segment. All thirty pre-mapper hotspots carry it.
 
 function hotspotShape(record) {
   const f = record.fields || {};
@@ -29,6 +35,9 @@ function hotspotShape(record) {
     deviceVariant: f[FIELDS.HOTSPOTS.DEVICE_VARIANT] || "",
     applicationAreaIds: f[FIELDS.HOTSPOTS.APPLICATION_AREAS] || [],
     status: f[FIELDS.HOTSPOTS.STATUS] || null,
+    // How many manufacturer mappings hang off this hotspot. The UI shows it
+    // and the delete guard below depends on it.
+    mappingCount: (f[FIELDS.HOTSPOTS.APPLICATION_MAPPING] || []).length,
   };
 }
 
@@ -45,6 +54,23 @@ async function typeById(typeId) {
     segment: f[FIELDS.TYPES.SEGMENT] || "",
     applicationImageUrl: f[FIELDS.TYPES.APPLICATION_IMAGE_URL] || "",
   };
+}
+
+// Resolve the Application Model record for a Type's Segment. Returns null when
+// the segment has no model yet — a new segment with no diagram is a legitimate
+// state, and a missing link must not block a hotspot being created.
+async function applicationModelIdForSegment(segment) {
+  const wanted = SEGMENT_TO_APPLICATION_MODEL[segment];
+  if (!wanted) return null;
+  try {
+    const data = await airtableFetch(path(TABLES.APPLICATION_MODELS), { cache: "no-store" });
+    const hit = (data.records || []).find(
+      (r) => (r.fields || {})[FIELDS.APPLICATION_MODELS.NAME] === wanted
+    );
+    return hit ? hit.id : null;
+  } catch {
+    return null;
+  }
 }
 
 // Slug used for Hotspot ID when the client doesn't supply one. Must be
@@ -68,6 +94,8 @@ async function allHotspots() {
   } while (offset);
   return out;
 }
+
+const VALID_ID = /^rec[a-zA-Z0-9]{14}$/;
 
 export async function GET(request) {
   try {
@@ -130,6 +158,8 @@ export async function POST(request) {
     if (Array.isArray(applicationAreaIds) && applicationAreaIds.length) {
       fields[FIELDS.HOTSPOTS.APPLICATION_AREAS] = applicationAreaIds;
     }
+    const modelId = await applicationModelIdForSegment(type.segment);
+    if (modelId) fields[FIELDS.HOTSPOTS.APPLICATION_MODEL] = [modelId];
 
     const created = await airtableFetch(path(TABLES.HOTSPOTS), {
       method: "POST",
@@ -153,8 +183,42 @@ export async function POST(request) {
 export async function PATCH(request) {
   try {
     const body = await request.json();
+
+    // ---- Batch position commit -------------------------------------------
+    // The mapper stages every drag locally and sends them together when the
+    // user commits, so an accidental drag can be undone instead of silently
+    // reaching the live site the moment the mouse is released.
+    if (Array.isArray(body.moves)) {
+      const moves = body.moves.filter(
+        (m) => m && VALID_ID.test(m.id || "") && typeof m.x === "number" && typeof m.y === "number"
+      );
+      if (!moves.length) return Response.json({ error: "No positions to save." }, { status: 400 });
+      if (moves.length !== body.moves.length)
+        return Response.json({ error: "Some positions were malformed. Nothing was saved." }, { status: 400 });
+
+      const saved = [];
+      // Airtable accepts at most 10 records per update request.
+      for (let i = 0; i < moves.length; i += 10) {
+        const chunk = moves.slice(i, i + 10).map((m) => ({
+          id: m.id,
+          fields: {
+            [FIELDS.HOTSPOTS.X]: Math.round(m.x * 10) / 10,
+            [FIELDS.HOTSPOTS.Y]: Math.round(m.y * 10) / 10,
+          },
+        }));
+        const res = await airtableFetch(path(TABLES.HOTSPOTS), {
+          method: "PATCH",
+          body: JSON.stringify({ records: chunk, typecast: false, returnFieldsByFieldId: true }),
+        });
+        saved.push(...(res.records || []).map(hotspotShape));
+      }
+      return Response.json({ hotspots: saved, saved: saved.length });
+    }
+
+    // ---- Single-record edit ----------------------------------------------
     const { id } = body;
-    if (!id) return Response.json({ error: "A hotspot id is required." }, { status: 400 });
+    if (!id || !VALID_ID.test(id))
+      return Response.json({ error: "A hotspot id is required." }, { status: 400 });
 
     const fields = {};
     const set = (key, value) => {
@@ -212,6 +276,48 @@ export async function PATCH(request) {
   } catch (error) {
     return Response.json(
       { error: "Couldn't update the hotspot.", detail: error.message },
+      { status: 502 }
+    );
+  }
+}
+
+// Permanent delete, allowed only where there is nothing to lose.
+//
+// Airtable clears the link from the Application Mapping side automatically, so
+// a delete leaves no dangling reference — but it also leaves those mapping rows
+// attached to no hotspot at all: invisible on the Engine, still present in the
+// table, still counted. That is submitted work disappearing silently, so this
+// refuses and tells the caller to archive instead.
+export async function DELETE(request) {
+  try {
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id || !VALID_ID.test(id))
+      return Response.json({ error: "A hotspot id is required." }, { status: 400 });
+
+    const record = (await allHotspots()).find((r) => r.id === id);
+    if (!record) return Response.json({ error: "That hotspot no longer exists." }, { status: 404 });
+
+    const shape = hotspotShape(record);
+    if (shape.mappingCount > 0) {
+      return Response.json(
+        {
+          error:
+            `"${shape.label || "This hotspot"}" has ${shape.mappingCount} manufacturer ` +
+            `${shape.mappingCount === 1 ? "mapping" : "mappings"} attached. Deleting it would leave ` +
+            `${shape.mappingCount === 1 ? "that mapping" : "those mappings"} orphaned in Airtable. ` +
+            `Archive it instead — it comes off the site and nothing is lost.`,
+          mappingCount: shape.mappingCount,
+          canArchive: true,
+        },
+        { status: 409 }
+      );
+    }
+
+    await airtableFetch(path(TABLES.HOTSPOTS, `/${id}`), { method: "DELETE" });
+    return Response.json({ ok: true, deleted: id, label: shape.label });
+  } catch (error) {
+    return Response.json(
+      { error: "Couldn't delete the hotspot.", detail: error.message },
       { status: 502 }
     );
   }
