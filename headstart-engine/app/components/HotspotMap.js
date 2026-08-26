@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import ZoomPanStage from "./ZoomPanStage";
+import ZoomPanStage, { clampView } from "./ZoomPanStage";
 import CardsPanel from "./CardsPanel";
 import { SEGMENT_TO_APP } from "../lib/segmentAppMap";
 
@@ -164,7 +164,13 @@ export default function HotspotMap({
       const top = box.y + ((h.y || 0) / 100) * box.h;
       const deltaX = left - w / 2;
       const deltaY = top - hgt / 2;
-      setView({ scale, tx: -deltaX * scale, ty: -deltaY * scale });
+      // Centre the hotspot, then clamp so the frame is never panned past the
+      // edge of the picture. A hotspot close to an edge therefore lands as
+      // near the middle as the picture allows rather than dead centre with
+      // empty space beside it — the same rule any map applies.
+      setView(
+        clampView({ scale, tx: -deltaX * scale, ty: -deltaY * scale }, frameRef.current)
+      );
     }
   }
 
