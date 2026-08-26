@@ -68,7 +68,10 @@ export async function POST(request) {
 
     const saved = await airtableFetch(videosPath(id ? `/${id}` : ""), {
       method: id ? "PATCH" : "POST",
-      body: JSON.stringify({ fields }),
+      // returnFieldsByFieldId must be in the body on writes, not just the URL,
+      // or the response comes back keyed by field name and videoShape reads
+      // nothing. Same bug that bit the hotspot mapper.
+      body: JSON.stringify({ fields, returnFieldsByFieldId: true }),
     });
 
     return Response.json({ ok: true, video: videoShape(saved) });
