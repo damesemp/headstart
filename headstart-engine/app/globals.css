@@ -2117,3 +2117,111 @@ body {
 .hs-linkrow-meta {
   font-size: 10px;
 }
+
+
+/* ==========================================================================
+   ROUND 5h — type up 20%
+   ==========================================================================
+   Every size raised by 20% from the Round 5g values, with two exceptions the
+   brief holds at their current size: the reset controls (RESET, RESET
+   SELECTION, map RESET) and the flyout column headings (INDUSTRY, SEGMENT,
+   TYPE, MANUFACTURER, APPLICATION AREA, LINECARD CATEGORY). */
+
+/* --- flyout --------------------------------------------------------------- */
+.hs-flyout-search input {
+  font-size: 18px;
+}
+.hs-flyout-breadcrumb {
+  font-size: 18px;
+}
+.hs-flyout-row {
+  font-size: 16px;
+}
+.hs-flyout-row-meta {
+  font-size: 14.5px;
+}
+.hs-flyout-arrow {
+  font-size: 15.5px;
+}
+.hs-flyout-maptag {
+  font-size: 9.5px;
+}
+.hs-flyout-videopill {
+  font-size: 12.5px;
+}
+.hs-flyout-result,
+.hs-flyout-message {
+  font-size: 18px;
+}
+
+/* --- app bar -------------------------------------------------------------- */
+.hs-crumb {
+  font-size: 12.5px;
+}
+.hs-hsmap-vartab,
+.hs-hsmap-vartab.hs-on {
+  font-size: 12.5px;
+}
+
+/* --- map stage ------------------------------------------------------------ */
+.hs-hsmap-dotlabel {
+  font-size: 12px;
+}
+.hs-zoomstage-pct {
+  font-size: 13px;
+}
+.hs-state-msg {
+  font-size: 17px;
+}
+
+/* --- cards ---------------------------------------------------------------- */
+.hs-card-toolbar-label {
+  font-size: 15.5px;
+}
+.hs-card-title {
+  font-size: 21.5px;
+}
+.hs-card-heading {
+  font-size: 12px;
+}
+.hs-card-count {
+  font-size: 12px;
+}
+.hs-card-group-label {
+  font-size: 12px;
+}
+.hs-card-copy {
+  font-size: 15px;
+}
+.hs-card-numbered li {
+  font-size: 14.5px;
+}
+.hs-card-number {
+  font-size: 12.5px;
+}
+.hs-card-chip {
+  font-size: 14.5px;
+}
+.hs-card-tags li {
+  font-size: 13px;
+}
+.hs-card-unmapped {
+  font-size: 18px;
+}
+.hs-linkrow-text {
+  font-size: 15px;
+}
+.hs-linkrow-meta {
+  font-size: 12px;
+}
+
+/* Held at current size by instruction. */
+.hs-flyout-column-title {
+  font-size: 15px;
+}
+.hs-card-reset {
+  font-size: 15px;
+}
+.hs-flyout-reset {
+  font-size: 15px;
+}
