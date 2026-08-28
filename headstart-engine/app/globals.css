@@ -2069,3 +2069,51 @@ body {
 .hs-flyout-maptag {
   top: 9px;
 }
+
+
+/* ==========================================================================
+   ROUND 5g — type size, +1px
+   ==========================================================================
+   Flyout: row label, row meta and arrow.
+   Cards: every item that was under 13px. Items already at 13px or above
+   (DETAILS 13, RESET SELECTION 15, selected-area title 18) are unchanged. */
+.hs-flyout-row {
+  font-size: 13.5px;
+}
+.hs-flyout-row-meta {
+  font-size: 12px;
+}
+.hs-flyout-arrow {
+  font-size: 13px;
+}
+
+.hs-card-heading {
+  font-size: 10px;
+}
+.hs-card-count {
+  font-size: 10px;
+}
+.hs-card-group-label {
+  font-size: 10px;
+}
+.hs-card-copy {
+  font-size: 12.5px;
+}
+.hs-card-numbered li {
+  font-size: 12px;
+}
+.hs-card-number {
+  font-size: 10.5px;
+}
+.hs-card-chip {
+  font-size: 12px;
+}
+.hs-card-tags li {
+  font-size: 11px;
+}
+.hs-linkrow-text {
+  font-size: 12.5px;
+}
+.hs-linkrow-meta {
+  font-size: 10px;
+}
