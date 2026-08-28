@@ -150,9 +150,9 @@ export default function EngineShell() {
   return (
     <div className="hs-app-shell">
       <aside className="hs-rail">
-        <div className="hs-rail-logo" aria-hidden="true">
-          A
-        </div>
+        {/* Round 5: the orange "A" mark was removed. It duplicated the brand
+            mark now in the top bar and carried no click action (confirmed by
+            Damian, 27 August). */}
         <button
           type="button"
           className="hs-rail-btn"

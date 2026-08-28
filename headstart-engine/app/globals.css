@@ -1,6 +1,9 @@
 :root {
   --astute-orange: #f58220;
-  --teal: #3ec2cf;
+  /* Round 5: teal is removed from the palette. The variable is kept
+     pointing at the muted ink so any missed use degrades to neutral, never
+     to orange — orange has exactly four jobs on screen. */
+  --teal: #8a8b8d;
   --black: #000000;
   --page-dark: #141414;
   --panel-dark: #1e1e1e;
@@ -1136,4 +1139,419 @@ body {
   line-height: 1.55;
   color: #6f6d67;
   padding: 4px 0 8px;
+}
+
+
+/* ==========================================================================
+   ROUND 5 — GUI
+   Astute chrome, two-column cards panel, link list, flyout map tag.
+   Spec: HEADSTART_BUILD_INSTRUCTIONS_5.md. No behaviour changes.
+   ========================================================================== */
+
+:root {
+  --hs-bar: #1e1e1c;
+  --hs-hairline: #e7e7e4;
+  --hs-field: #efefee;
+  --hs-tile: #ffffff;
+  --hs-rule: #dcddde;
+  --hs-ink: #212120;
+  --hs-ink-2: #4a4b4c;
+  --hs-ink-3: #8a8b8d;
+  --hs-card-w: 668px;
+}
+
+/* --- frame ---------------------------------------------------------------- */
+.hs-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #000;
+}
+/* The chrome is fixed height; the app fills what is left and scrolls
+   internally, so the page itself never scrolls and the bars stay put. */
+.hs-frame-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.hs-frame-body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.hs-divider {
+  flex: 0 0 auto;
+  height: 1px;
+  background: var(--hs-hairline);
+}
+
+.hs-brandbar {
+  flex: 0 0 auto;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 0 30px;
+  background: var(--hs-bar);
+}
+.hs-brandbar-logo {
+  display: block;
+  flex: 0 0 auto;
+  line-height: 0;
+}
+/* Measured from the live Astute bar: 34.2% of bar height, aspect 5.087:1. */
+.hs-brandbar-logo img {
+  display: block;
+  height: 22px;
+  width: 112px;
+}
+.hs-brandbar-links {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.hs-brandbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+.hs-brandbar-links a,
+.hs-footbar {
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  color: #d6d6d3;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hs-brandbar-links a:hover {
+  color: #fff;
+}
+.hs-ext {
+  color: var(--astute-orange);
+  font-weight: 700;
+  font-size: 11px;
+  margin-left: 6px;
+}
+.hs-rule {
+  display: inline-block;
+  width: 1px;
+  height: 13px;
+  background: rgba(255, 255, 255, 0.3);
+  flex: 0 0 auto;
+}
+.hs-footbar {
+  flex: 0 0 auto;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--hs-bar);
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* --- cards panel: tiles on grey, two columns ------------------------------ */
+.hs-hsmap-panel {
+  width: var(--hs-card-w);
+  flex: 0 0 var(--hs-card-w);
+  background: var(--hs-field);
+  border-left: none;
+  color: var(--hs-ink);
+}
+.hs-card-toolbar {
+  background: var(--hs-tile);
+  border-bottom: none;
+}
+.hs-card-content.hs-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  gap: 0 10px;
+  padding: 10px 12px 16px;
+}
+.hs-card-span,
+.hs-card-grid > .hs-card-group-label.hs-card-span,
+.hs-card-grid > .hs-card-unmapped {
+  grid-column: 1 / -1;
+}
+.hs-card-col {
+  min-width: 0;
+}
+.hs-card-section {
+  background: var(--hs-tile);
+  padding: 12px 13px;
+  margin-bottom: 8px;
+  border-bottom: none;
+}
+.hs-card-headingrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.hs-card-heading {
+  margin: 0 0 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--hs-ink-3);
+}
+.hs-card-count {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--hs-ink-3);
+}
+.hs-card-title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.012em;
+  line-height: 1.16;
+  color: var(--hs-ink);
+}
+.hs-card-selected-area .hs-card-title {
+  text-transform: uppercase;
+}
+.hs-card-franchise .hs-card-title {
+  font-size: 15px;
+  text-transform: none;
+}
+.hs-card-category {
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: var(--hs-ink-2);
+}
+.hs-card-copy {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--hs-ink-2);
+}
+.hs-card-copy p {
+  margin: 0 0 7px;
+}
+.hs-card-group-label {
+  margin: 14px 2px 8px;
+  padding: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--hs-ink);
+}
+.hs-card-group-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hs-ink);
+  opacity: 0.18;
+}
+.hs-card-unmapped {
+  background: var(--hs-tile);
+  padding: 12px 13px;
+  margin-bottom: 8px;
+  font-size: 11.5px;
+  color: var(--hs-ink-2);
+}
+
+/* Selector: small wrapping pills. The fill is what makes selection
+   unambiguous, so it is kept — only the size was reduced. Eight fit in two
+   rows; the live maximum is five. */
+.hs-card-chips {
+  gap: 5px;
+}
+.hs-card-chip {
+  min-height: 0;
+  padding: 5px 11px;
+  border-radius: 0;
+  border: 1px solid var(--hs-rule);
+  background: var(--hs-tile);
+  color: var(--hs-ink-2);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.hs-card-chip:hover,
+.hs-card-chip.hs-on {
+  background: var(--hs-ink);
+  border-color: var(--hs-ink);
+  color: #fff;
+  font-weight: 800;
+}
+
+.hs-card-numbered li {
+  grid-template-columns: 18px 1fr;
+  gap: 9px;
+  padding: 4px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hs-ink-2);
+}
+.hs-card-number {
+  font-size: 9.5px;
+  font-weight: 900;
+}
+
+/* Links: a list, not buttons. The glyph says what will happen. */
+.hs-linklist {
+  display: flex;
+  flex-direction: column;
+}
+.hs-linkrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid #eaeae8;
+  color: var(--hs-ink);
+  text-decoration: none;
+}
+.hs-linkrow:first-child {
+  border-top: none;
+  padding-top: 2px;
+}
+.hs-linkrow:hover .hs-linkrow-text {
+  text-decoration: underline;
+}
+.hs-linkrow-glyph {
+  flex: 0 0 11px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--hs-ink-3);
+}
+.hs-linkrow-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.hs-linkrow-meta {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9a9b9c;
+  white-space: nowrap;
+}
+
+.hs-hsmap-empty {
+  background: var(--hs-tile);
+  margin: 10px 12px;
+  padding: 16px 14px;
+}
+.hs-hsmap-empty-title {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--hs-ink);
+}
+.hs-hsmap-empty-sub {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--hs-ink-2);
+}
+
+/* --- flyout: map tag on the Type row -------------------------------------- */
+.hs-flyout-rowwrap {
+  position: relative;
+}
+.hs-flyout-maptag {
+  position: absolute;
+  top: 12px;
+  right: 30px;
+  padding: 2px 5px;
+  border: 1px solid #3a3a38;
+  background: transparent;
+  color: var(--hs-ink-3);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  cursor: pointer;
+  z-index: 2;
+}
+.hs-flyout-maptag:hover,
+.hs-flyout-rowwrap.hs-on .hs-flyout-maptag {
+  border-color: var(--astute-orange);
+  color: var(--astute-orange);
+}
+/* The video sits under the Type it plays for and must continue the selected
+   row's rule as one unbroken line — no offset, no gap. */
+.hs-flyout-typemeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  margin-top: 6px;
+}
+
+/* --- responsive ------------------------------------------------------------
+   The binding constraint is height, not width: the device images are ~4:3, so
+   the width the image can use is stage height x 1.33. Below 1600px the
+   two-column card costs the map more than it gives the card. */
+@media (max-width: 1599px) {
+  :root {
+    --hs-card-w: 400px;
+  }
+  .hs-card-content.hs-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 1199px) {
+  .hs-hsmap-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    box-shadow: -18px 0 40px -14px rgba(0, 0, 0, 0.55);
+  }
+}
+
+.hs-frame-body .hs-app-shell {
+  height: 100%;
+  min-height: 0;
+}
+.hs-frame-body .hs-main {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The record can exceed the panel in one-column mode. Pin the context so the
+   user always knows which area and which manufacturer they are reading while
+   the columns scroll beneath it. */
+.hs-card-selected-area {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  box-shadow: 0 8px 10px -10px rgba(33, 33, 32, 0.35);
+}
+
+.hs-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hs-card-tags li {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: #f1f1ef;
+  color: #3c3d3e;
 }
