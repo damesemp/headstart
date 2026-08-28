@@ -250,13 +250,6 @@ export default function CardsPanel({
               <div className="hs-card-group-label hs-card-span">Target</div>
 
               <div className="hs-card-col hs-card-col-left">
-                {selection.kind === "subcategory" && (
-                  <Section
-                    heading={selection.subcategory}
-                    value={`${manufacturerEntries.length} franchises found under ${selection.category}.`}
-                  />
-                )}
-
                 <Section
                   heading="Astute Franchise"
                   value={manufacturer.name}
@@ -265,25 +258,6 @@ export default function CardsPanel({
                   <div className="hs-card-title">{manufacturer.name}</div>
                   {categoryLine && (
                     <div className="hs-card-category">{categoryLine}</div>
-                  )}
-                  {selection.kind === "subcategory" && (
-                    <div className="hs-card-chips hs-card-franchise-chips">
-                      {manufacturerEntries.map((entry) => (
-                        <button
-                          key={entry.manufacturer.id}
-                          type="button"
-                          className={`hs-card-chip${entry.manufacturer.id === activeManufacturerId ? " hs-on" : ""}`}
-                          onClick={() =>
-                            setChipSelection({
-                              selectionKey,
-                              manufacturerId: entry.manufacturer.id,
-                            })
-                          }
-                        >
-                          {entry.manufacturer.name}
-                        </button>
-                      ))}
-                    </div>
                   )}
                 </Section>
 
@@ -294,35 +268,21 @@ export default function CardsPanel({
                   screen below them. Applications and Industries were removed:
                   the user has already chosen an industry and an application
                   area to get here. */}
-                {selection.kind === "subcategory" ? (
-                  <>
-                    <Section heading="Manufacturer Details" value={details}>
-                      <div className="hs-card-copy">
-                        {details.map((paragraph, index) => (
-                          <p key={`${index}-${paragraph}`}>{paragraph}</p>
-                        ))}
-                      </div>
-                    </Section>
-                    <Section
-                      heading="Manufacturer Headline"
-                      value={manufacturer.headline}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Section
-                      heading="Manufacturer Headline"
-                      value={manufacturer.headline}
-                    />
-                    <Section heading="Manufacturer Details" value={details}>
-                      <div className="hs-card-copy">
-                        {details.map((paragraph, index) => (
-                          <p key={`${index}-${paragraph}`}>{paragraph}</p>
-                        ))}
-                      </div>
-                    </Section>
-                  </>
-                )}
+                {/* Round 5 correction, 28 August: Embedded PC used to put
+                    Details before Headline while the hotspot map did the
+                    reverse, so the card reordered itself depending on how the
+                    user arrived. One order now, both paths. */}
+                <Section
+                  heading="Manufacturer Headline"
+                  value={manufacturer.headline}
+                />
+                <Section heading="Manufacturer Details" value={details}>
+                  <div className="hs-card-copy">
+                    {details.map((paragraph, index) => (
+                      <p key={`${index}-${paragraph}`}>{paragraph}</p>
+                    ))}
+                  </div>
+                </Section>
                 <Section
                   heading="Why This Manufacturer Fits"
                   value={whyThisManufacturerFits}

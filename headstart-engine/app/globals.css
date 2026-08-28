@@ -201,9 +201,14 @@ body {
 /* Hotspot map — Step 4 */
 .hs-hsmap-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 35vw;
+  grid-template-columns: minmax(0, 1fr) var(--hs-card-w);
   flex: 1;
   min-height: 0;
+  /* Round 5: the map and the card are two objects inside the black frame,
+     not one surface split by a border. */
+  gap: 18px;
+  padding: 0 18px 18px;
+  background: #000;
 }
 
 .hs-hsmap-stage {
@@ -262,7 +267,7 @@ body {
 
 .hs-hsmap-dot.hs-on {
   background: var(--teal);
-  box-shadow: 0 0 0 5px rgba(62, 194, 207, 0.35);
+  box-shadow: 0 0 0 5px rgba(245, 130, 32, 0.32);
 }
 
 .hs-hsmap-dotlabel {
@@ -316,9 +321,11 @@ body {
 }
 
 .hs-hsmap-vartab.hs-on {
-  background: var(--astute-orange);
-  border-color: var(--astute-orange);
-  color: #111;
+  /* Round 5: orange marks the selected hotspot and nothing else. A selected
+     tab is a dark fill, like every other selected control. */
+  background: #212120;
+  border-color: #212120;
+  color: #ffffff;
 }
 
 .hs-hsmap-panel {
@@ -804,8 +811,8 @@ body {
 
 .hs-zoomstage-reset {
   margin-left: 4px;
-  background: var(--astute-orange);
-  color: #1a1a1a;
+  background: #3a3a38;
+  color: #ffffff;
   border: none;
   border-radius: 6px;
   padding: 5px 10px;
@@ -1005,9 +1012,12 @@ body {
 }
 
 .hs-flyout-row.hs-on {
-  border-color: rgba(62, 194, 207, 0.65);
-  background: rgba(62, 194, 207, 0.11);
-  color: var(--teal);
+  /* Round 5 fix: these were hardcoded teal, so repointing the --teal
+     variable had no effect on them. Selection is now a white fill on the
+     row, matching how selection reads everywhere else. */
+  border-color: #6d6e70;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 .hs-flyout-row-copy {
@@ -1164,13 +1174,15 @@ body {
 .hs-frame {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   background: #000;
 }
-/* The chrome is fixed height; the app fills what is left and scrolls
-   internally, so the page itself never scrolls and the bars stay put. */
+/* The app fills the viewport below the brand bar and scrolls internally.
+   The footer is a full site footer, so it sits below the fold rather than
+   stealing working height from the tool. */
 .hs-frame-body {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  height: calc(100vh - 65px);
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -1510,16 +1522,7 @@ body {
     grid-template-columns: 1fr;
   }
 }
-@media (max-width: 1199px) {
-  .hs-hsmap-panel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 40;
-    box-shadow: -18px 0 40px -14px rgba(0, 0, 0, 0.55);
-  }
-}
+
 
 .hs-frame-body .hs-app-shell {
   height: 100%;
@@ -1554,4 +1557,165 @@ body {
   padding: 3px 8px;
   background: #f1f1ef;
   color: #3c3d3e;
+}
+
+
+/* ==========================================================================
+   ROUND 5 — CORRECTIONS (28 August)
+   ========================================================================== */
+
+/* The panel is a grid item. Width and flex on it are ignored; the track
+   width in .hs-hsmap-layout is what actually sizes it. */
+.hs-hsmap-panel {
+  width: auto;
+  flex: initial;
+  border-left: none;
+}
+
+/* The map stage is an object in the frame, so it loses its divider border. */
+.hs-hsmap-stage {
+  border-right: none;
+}
+
+/* Embedded PC uses .hs-hsmap-layout too, so it inherits the frame. */
+
+/* The flyout belongs to the app area, not the viewport: it must open BELOW
+   the Astute bar and ABOVE the footer, never over them. */
+.hs-flyout,
+.hs-flyout-dim {
+  top: 65px;
+  bottom: 53px;
+}
+
+/* The brand bar and footer sit above the rail and the flyout in every case. */
+.hs-brandbar,
+.hs-footbar,
+.hs-divider {
+  position: relative;
+  z-index: 200;
+}
+
+/* The new astutegroup.com centres its content in a wrapper while the bars
+   themselves run full width. */
+:root {
+  --hs-wrap: 1320px;
+}
+.hs-wrapinner {
+  width: 100%;
+  max-width: var(--hs-wrap);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+.hs-brandbar {
+  padding: 0 30px;
+}
+
+/* ---- two-level site footer, matching the new astutegroup.com ---- */
+.hs-footer {
+  flex: 0 0 auto;
+  background: var(--hs-bar);
+  color: #d6d6d3;
+}
+.hs-footer-main {
+  padding: 48px 30px 40px;
+}
+.hs-footer-cols {
+  align-items: flex-start;
+  gap: 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr));
+}
+.hs-footer-brand img {
+  display: block;
+  height: 22px;
+  width: 112px;
+}
+.hs-footer-brand p {
+  margin: 18px 0 0;
+  max-width: 30ch;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #b9b9b6;
+}
+.hs-footer-social {
+  display: flex;
+  gap: 14px;
+  margin-top: 22px;
+  color: #b9b9b6;
+}
+.hs-footer-social a {
+  color: inherit;
+  line-height: 0;
+}
+.hs-footer-social a:hover {
+  color: #ffffff;
+}
+.hs-footer-col h2 {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.hs-footer-col p {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #b9b9b6;
+}
+.hs-footer-col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hs-footer-col li {
+  margin: 0 0 10px;
+}
+.hs-footer-col a {
+  font-size: 12.5px;
+  color: #d6d6d3;
+  text-decoration: none;
+}
+.hs-footer-col a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+.hs-footer-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 52px;
+  padding: 0 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 12.5px;
+  color: #d6d6d3;
+  text-align: center;
+}
+
+@media (max-width: 1099px) {
+  .hs-footer-cols {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 36px;
+  }
+}
+
+/* Below 1200 the card becomes an overlay drawer. It is taken out of the grid,
+   so the track no longer sizes it — the width has to be set explicitly. */
+@media (max-width: 1199px) {
+  .hs-hsmap-layout {
+    grid-template-columns: minmax(0, 1fr);
+    position: relative;
+  }
+  .hs-hsmap-panel {
+    position: absolute;
+    top: 0;
+    right: 18px;
+    bottom: 18px;
+    width: var(--hs-card-w);
+    max-width: calc(100% - 36px);
+    z-index: 40;
+    box-shadow: -18px 0 40px -14px rgba(0, 0, 0, 0.55);
+  }
 }
