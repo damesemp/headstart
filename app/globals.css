@@ -1,0 +1,2071 @@
+/* Texta Alt — the Astute brand face. Licence confirmed by Damian, 28 Aug.
+   Self-hosted woff2, converted from the supplied OTFs. Four upright weights
+   only; the interface uses no italics. */
+@font-face { font-family: "Texta Alt"; src: url("/fonts/texta-alt-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Texta Alt"; src: url("/fonts/texta-alt-500.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Texta Alt"; src: url("/fonts/texta-alt-700.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Texta Alt"; src: url("/fonts/texta-alt-900.woff2") format("woff2");
+  font-weight: 900; font-style: normal; font-display: swap; }
+
+:root {
+  --astute-orange: #f58220;
+  /* Round 5: teal is removed from the palette. The variable is kept
+     pointing at the muted ink so any missed use degrades to neutral, never
+     to orange — orange has exactly four jobs on screen. */
+  --teal: #8a8b8d;
+  --black: #000000;
+  --page-dark: #141414;
+  --panel-dark: #1e1e1e;
+  --panel-dark-border: rgba(255, 255, 255, 0.08);
+  --ink: #ffffff;
+  --ink-muted: #a8a8a5;
+  --card-bg: #111111;
+  --card-border: #2a2a2a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--page-dark);
+  color: var(--ink);
+  font-family: "Texta Alt", Arial, Helvetica, sans-serif;
+}
+
+.hs-app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Rail — logo, Directory, Reset only. No "Switch application" icon: removed
+   per HEADSTART_MASTER_HANDOVER.md Section 3 ("duplicates the Directory and
+   confuses navigation"). */
+.hs-rail {
+  position: relative;
+  z-index: 50;
+  width: 64px;
+  flex-shrink: 0;
+  background: #111;
+  border-right: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 0;
+  gap: 22px;
+}
+
+.hs-rail-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: var(--astute-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 13px;
+  color: #111;
+}
+
+.hs-rail-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid #555;
+  background: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hs-rail-btn:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.hs-rail-btn.hs-rail-active {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.hs-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Video modal */
+.hs-vm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: hs-vm-fade 0.25s ease-out;
+}
+
+@keyframes hs-vm-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.hs-vm-card {
+  width: 760px;
+  max-width: 88vw;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.hs-vm-frame {
+  aspect-ratio: 16 / 9;
+  background: radial-gradient(circle at 50% 50%, rgba(245, 130, 32, 0.16), transparent 60%), #0c0c0c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 3px solid var(--astute-orange);
+}
+
+.hs-vm-frame video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+}
+
+.hs-vm-play {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: rgba(245, 130, 32, 0.15);
+  border: 2px solid var(--astute-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--astute-orange);
+  font-size: 26px;
+}
+
+.hs-vm-body {
+  padding: 20px 24px 24px;
+}
+
+.hs-vm-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--astute-orange);
+  margin-bottom: 6px;
+}
+
+.hs-vm-title {
+  font-size: 19px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.hs-vm-sub {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.hs-vm-back {
+  background: none;
+  border: 1px solid #444;
+  color: #ddd;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.hs-vm-back:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.hs-state-msg {
+  padding: 60px 28px;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Hotspot map — Step 4 */
+.hs-hsmap-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--hs-card-w);
+  flex: 1;
+  min-height: 0;
+  /* Round 5: the map and the card are two objects inside the black frame,
+     not one surface split by a border. */
+  gap: 18px;
+  padding: 18px;
+  background: #000;
+}
+
+.hs-hsmap-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--card-border);
+  /* Map window is white, not black — 18 Aug 2026 decision. */
+  background: #ffffff;
+}
+
+/* This is now the outer box passed into ZoomPanStage (see
+   ZoomPanStage.js/.hs-zoomstage) — always present at a fixed size, never
+   disappears, per Section 7 of the nav rearchitecture spec. */
+.hs-hsmap-imgwrap {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.hs-hsmap-img {
+  /* object-fit: contain against a frame that fills the stage, not
+     width:100%/height:auto against an overflow:hidden box — that stretch
+     is what caused the device image to open over-magnified/cropped.
+     Hotspot dots are positioned in JS-computed pixels against this same
+     letterboxed rect (see HotspotMap.js renderedBox), not raw % of the
+     stage, so they stay aligned to the image regardless of its aspect
+     ratio. */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.hs-hsmap-dot {
+  position: absolute;
+  /* Larger than the original 16px — 18 Aug 2026 decision. */
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  border-radius: 50%;
+  background: rgba(245, 130, 32, 0.85);
+  border: 2px solid #fff;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 0 0 4px rgba(245, 130, 32, 0.25);
+}
+
+.hs-hsmap-dot:hover {
+  background: var(--teal);
+}
+
+.hs-hsmap-dot.hs-on {
+  background: var(--teal);
+  box-shadow: 0 0 0 5px rgba(245, 130, 32, 0.32);
+}
+
+.hs-hsmap-dotlabel {
+  /* Visible by default, not just on hover/click — 18 Aug 2026 decision. */
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(20, 20, 20, 0.85);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 1;
+  z-index: 1;
+}
+
+.hs-hsmap-dot:hover .hs-hsmap-dotlabel,
+.hs-hsmap-dot.hs-on .hs-hsmap-dotlabel {
+  background: var(--teal);
+  color: #06231f;
+  z-index: 2;
+}
+
+.hs-hsmap-varrow {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  flex-wrap: wrap;
+}
+
+.hs-hsmap-vartab {
+  background: #161616;
+  border: 1px solid var(--card-border);
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.hs-hsmap-vartab:hover {
+  color: #fff;
+  border-color: #555;
+}
+
+.hs-hsmap-vartab.hs-on {
+  /* Round 5: orange marks the selected hotspot and nothing else. A selected
+     tab is a dark fill, like every other selected control. */
+  background: #212120;
+  border-color: #212120;
+  color: #ffffff;
+}
+
+.hs-hsmap-panel {
+  position: relative;
+  min-width: 0;
+  background: #f2f1ee;
+  color: #2d2d2a;
+  border-left: 1px solid #d7d5cf;
+  overflow-y: auto;
+}
+
+.hs-card-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(242, 241, 238, 0.97);
+  border-bottom: 1px solid #d7d5cf;
+}
+
+.hs-card-toolbar-label,
+.hs-card-heading,
+.hs-card-group-label {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.hs-card-toolbar-label {
+  color: #74736f;
+}
+
+.hs-card-reset {
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid #67665f;
+  border-radius: 6px;
+  background: transparent;
+  color: #2d2d2a;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.hs-card-reset:hover:not(:disabled) {
+  background: #2d2d2a;
+  color: #fff;
+}
+
+.hs-card-reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.hs-hsmap-empty {
+  padding: 64px 28px;
+  text-align: center;
+  color: #74736f;
+}
+
+.hs-hsmap-empty-title {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.hs-hsmap-empty-sub {
+  max-width: 360px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.hs-card-content {
+  padding: 18px 20px 30px;
+}
+
+.hs-card-section {
+  padding: 15px 0 17px;
+  border-bottom: 1px solid #d7d5cf;
+}
+
+.hs-card-heading {
+  margin: 0 0 9px;
+  color: #74736f;
+}
+
+.hs-card-title {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #22221f;
+}
+
+.hs-card-category {
+  margin-top: 6px;
+  color: #66655f;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.hs-card-copy {
+  color: #3d3d39;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.hs-card-copy p {
+  margin: 0 0 10px;
+}
+
+.hs-card-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.hs-card-group-label {
+  margin: 24px 0 0;
+  padding: 10px 12px;
+  background: #dedcd5;
+  color: #3d3d39;
+}
+
+.hs-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hs-card-chip {
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #8a8982;
+  border-radius: 999px;
+  background: transparent;
+  color: #3d3d39;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.hs-card-chip:hover,
+.hs-card-chip.hs-on {
+  background: #2d2d2a;
+  border-color: #2d2d2a;
+  color: #fff;
+}
+
+.hs-card-numbered {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hs-card-numbered li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  padding: 8px 0;
+  color: #3d3d39;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.hs-card-number {
+  color: var(--astute-orange);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.hs-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 18px;
+}
+
+.hs-card-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid #2d2d2a;
+  border-radius: 6px;
+  color: #2d2d2a;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hs-card-link:hover {
+  background: #2d2d2a;
+  color: #fff;
+}
+
+/* Embedded PC diagram — Step 4. Light stage, matching the reference file's
+   corrected --stage-light background, distinct from the dark hotspot map.
+   Now sits inside the shared hs-hsmap-layout (map stage + cards panel),
+   pan/zoomable like the other three maps — 18 Aug 2026 nav rearchitecture. */
+.hs-pc-stage {
+  padding: 16px 16px 0;
+  overflow: hidden;
+}
+
+.hs-pc-zoomwrap {
+  background: #f2f1ed;
+  flex: 1;
+}
+
+.hs-pc-wrap {
+  background: #f2f1ed;
+  color: #2c2c2a;
+  padding: 4px 8px 32px;
+}
+
+.hs-pc-note {
+  font-size: 12px;
+  color: #6a6a66;
+  margin-bottom: 18px;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.hs-pc-mfrlink {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  cursor: pointer;
+}
+
+.hs-pc-mfrlink:hover {
+  text-decoration-color: currentColor;
+  color: var(--pc-accent, #2c2c2a);
+}
+
+.hs-pc-band {
+  margin-bottom: 14px;
+}
+
+.hs-pc-mid {
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  gap: 14px;
+  align-items: start;
+}
+
+.hs-pc-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hs-pc-centre {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hs-pc-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.hs-pc-box {
+  background: var(--pc-bg);
+  border: 1.5px solid var(--pc-accent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.hs-pc-box:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.hs-pc-box.hs-pc-anchor {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  border-width: 2.5px;
+}
+
+.hs-pc-box.hs-pc-companion {
+  box-shadow: 0 0 0 3px var(--pc-subbg);
+}
+
+.hs-pc-box-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pc-text);
+}
+
+.hs-pc-box-head p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #6a6a66;
+}
+
+.hs-pc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.hs-pc-chip {
+  border: 0;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pc-text);
+  background: var(--pc-subbg);
+  border-radius: 999px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.hs-pc-chip.hs-on {
+  background: var(--pc-accent);
+  color: #fff;
+}
+
+.hs-pc-chip-more {
+  color: #6a6a66;
+  background: rgba(0, 0, 0, 0.06);
+  cursor: default;
+}
+
+.hs-pc-full {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hs-pc-subbox {
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.hs-pc-subbox.hs-on {
+  background: var(--pc-subbg);
+  box-shadow: inset 0 0 0 2px var(--pc-accent);
+}
+
+.hs-pc-subbox-title {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--pc-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+}
+
+.hs-card-franchise-chips {
+  margin-top: 12px;
+}
+
+.hs-pc-subbox-names {
+  font-size: 11px;
+  color: #444;
+  line-height: 1.5;
+}
+
+/* ================================================================
+   Nav rearchitecture — 18 Aug 2026
+   Shared pan/zoom/drag stage, flyout, splash screen.
+   ================================================================ */
+
+.hs-zoomstage {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+  /* A pan surface, not a document. Without these, dragging across it selects
+     text and — on macOS especially — starts the browser's own image drag. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hs-zoomstage img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hs-zoomstage-frame {
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+/* HotspotMap's stage: the frame must exactly match the wrapper's box —
+   the letterbox math in HotspotMap.js assumes stageSize === frame size. */
+.hs-hsmap-imgwrap .hs-zoomstage-frame {
+  width: 100%;
+  height: 100%;
+}
+
+/* EmbeddedPCMap's stage: the frame hugs its own content (the category
+   grid can be taller than the visible stage) — drag/zoom reveals the
+   rest, rather than the frame being force-fit to the wrapper. */
+.hs-pc-zoomwrap .hs-zoomstage-frame {
+  width: 100%;
+}
+
+.hs-zoomstage-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(20, 20, 20, 0.85);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.hs-pc-stage .hs-zoomstage-controls {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #ddd;
+}
+
+.hs-zoomstage-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hs-pc-stage .hs-zoomstage-btn {
+  border-color: #ccc;
+  color: #2c2c2a;
+}
+
+/* At either end of the range the button does nothing, so say so rather than
+   letting it look live and respond to nothing. */
+.hs-zoomstage-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.hs-zoomstage-pct {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  min-width: 38px;
+  text-align: center;
+}
+
+.hs-pc-stage .hs-zoomstage-pct {
+  color: #2c2c2a;
+}
+
+.hs-zoomstage-reset {
+  margin-left: 4px;
+  background: #3a3a38;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Column flyout — the only navigation surface. */
+.hs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hs-flyout-dim {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 64px;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 40;
+  border: 0;
+  padding: 0;
+  cursor: default;
+}
+
+.hs-flyout-dim.hs-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hs-flyout {
+  position: fixed;
+  top: 0;
+  left: 64px;
+  bottom: 0;
+  width: min(780px, calc(100vw - 64px));
+  max-width: calc(100vw - 64px);
+  background: #141414;
+  border-right: 1px solid var(--card-border);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.4);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.hs-flyout.hs-open {
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.hs-flyout-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.hs-flyout-search {
+  flex: 1;
+}
+
+.hs-flyout-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid #3b3b3b;
+  border-radius: 7px;
+  outline: none;
+  background: #202020;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+}
+
+.hs-flyout-search input:focus {
+  border-color: var(--teal);
+}
+
+.hs-flyout-search input::placeholder {
+  color: #909090;
+}
+
+.hs-flyout-reset {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #505050;
+  border-radius: 7px;
+  background: #2a2a2a;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.hs-flyout-close {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #505050;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hs-flyout-close:hover {
+  color: #fff;
+}
+
+.hs-flyout-breadcrumb {
+  min-height: 48px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--card-border);
+  color: #b8b8b8;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.hs-flyout-columns {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+
+.hs-flyout-column {
+  width: 260px;
+  min-width: 260px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--card-border);
+}
+
+.hs-flyout-column-title {
+  margin: 0;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--card-border);
+  color: #8c8c8c;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hs-flyout-column-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.hs-flyout-row {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  color: #e5e5e5;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hs-flyout-row:hover:not(:disabled) {
+  background: #222;
+}
+
+.hs-flyout-row.hs-on {
+  /* Round 5 fix: these were hardcoded teal, so repointing the --teal
+     variable had no effect on them. Selection is now a white fill on the
+     row, matching how selection reads everywhere else. */
+  border-color: #6d6e70;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.hs-flyout-row-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hs-flyout-row-meta {
+  color: #888;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.hs-flyout-arrow {
+  flex: 0 0 auto;
+  color: #777;
+  font-size: 22px;
+}
+
+.hs-flyout-embedded {
+  font-weight: 800;
+}
+
+.hs-flyout-separator {
+  height: 1px;
+  margin: 8px 10px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.hs-flyout-disabled {
+  color: #777;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.hs-flyout-results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.hs-flyout-result {
+  min-height: 62px;
+  margin-bottom: 3px;
+}
+
+.hs-flyout-message {
+  padding: 28px 14px;
+  color: #9a9a9a;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Splash screen — once per browser session. */
+.hs-splash {
+  position: fixed;
+  inset: 0;
+  background: var(--page-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.hs-splash-card {
+  text-align: center;
+}
+
+.hs-splash-astute {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+
+.hs-splash-headstart {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #fff;
+  position: relative;
+  display: inline-block;
+  padding-left: 14px;
+  border-left: 6px solid var(--astute-orange);
+}
+
+.hs-splash-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ink-muted);
+  letter-spacing: 0.03em;
+}
+
+.hs-splash-continue {
+  margin-top: 36px;
+  background: var(--astute-orange);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 36px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+/* Type with no Application Image URL set yet — a real state once the hotspot
+   mapper exists, not an error. Added 18 Aug 2026. */
+.hs-hsmap-noimg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: #8a8a85;
+  text-align: center;
+  padding: 24px;
+}
+
+/* Hotspot with no Application Mapping rows yet — expected state for a
+   newly placed hotspot, not an error. Added 18 Aug 2026. */
+.hs-card-unmapped {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #6f6d67;
+  padding: 4px 0 8px;
+}
+
+
+/* ==========================================================================
+   ROUND 5 — GUI
+   Astute chrome, two-column cards panel, link list, flyout map tag.
+   Spec: HEADSTART_BUILD_INSTRUCTIONS_5.md. No behaviour changes.
+   ========================================================================== */
+
+:root {
+  --hs-bar: #1e1e1c;
+  --hs-hairline: #e7e7e4;
+  --hs-field: #efefee;
+  --hs-tile: #ffffff;
+  --hs-rule: #dcddde;
+  --hs-ink: #212120;
+  --hs-ink-2: #4a4b4c;
+  --hs-ink-3: #8a8b8d;
+  --hs-card-w: 668px;
+}
+
+/* --- frame ---------------------------------------------------------------- */
+.hs-frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #000;
+}
+/* The app fills the viewport below the brand bar and scrolls internally.
+   The footer is a full site footer, so it sits below the fold rather than
+   stealing working height from the tool. */
+.hs-frame-body {
+  flex: 0 0 auto;
+  height: calc(100vh - 65px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.hs-frame-body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.hs-divider {
+  flex: 0 0 auto;
+  height: 1px;
+  background: var(--hs-hairline);
+}
+
+.hs-brandbar {
+  flex: 0 0 auto;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 0 30px;
+  background: var(--hs-bar);
+}
+.hs-brandbar-logo {
+  display: block;
+  flex: 0 0 auto;
+  line-height: 0;
+}
+/* Measured from the live Astute bar: 34.2% of bar height, aspect 5.087:1. */
+.hs-brandbar-logo img {
+  display: block;
+  height: 22px;
+  width: 112px;
+}
+.hs-brandbar-links {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.hs-brandbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+.hs-brandbar-links a,
+.hs-footbar {
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  color: #d6d6d3;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hs-brandbar-links a:hover {
+  color: #fff;
+}
+.hs-ext {
+  color: var(--astute-orange);
+  font-weight: 700;
+  font-size: 11px;
+  margin-left: 6px;
+}
+.hs-rule {
+  display: inline-block;
+  width: 1px;
+  height: 13px;
+  background: rgba(255, 255, 255, 0.3);
+  flex: 0 0 auto;
+}
+.hs-footbar {
+  flex: 0 0 auto;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--hs-bar);
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* --- cards panel: tiles on grey, two columns ------------------------------ */
+.hs-hsmap-panel {
+  width: var(--hs-card-w);
+  flex: 0 0 var(--hs-card-w);
+  background: var(--hs-field);
+  border-left: none;
+  color: var(--hs-ink);
+}
+.hs-card-toolbar {
+  background: var(--hs-tile);
+  border-bottom: none;
+}
+.hs-card-content.hs-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  gap: 0 10px;
+  padding: 10px 12px 16px;
+}
+.hs-card-span,
+.hs-card-grid > .hs-card-group-label.hs-card-span,
+.hs-card-grid > .hs-card-unmapped {
+  grid-column: 1 / -1;
+}
+.hs-card-col {
+  min-width: 0;
+}
+.hs-card-section {
+  background: var(--hs-tile);
+  padding: 12px 13px;
+  margin-bottom: 8px;
+  border-bottom: none;
+}
+.hs-card-headingrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.hs-card-heading {
+  margin: 0 0 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--hs-ink-3);
+}
+.hs-card-count {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--hs-ink-3);
+}
+.hs-card-title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.012em;
+  line-height: 1.16;
+  color: var(--hs-ink);
+}
+.hs-card-selected-area .hs-card-title {
+  text-transform: uppercase;
+}
+.hs-card-franchise .hs-card-title {
+  font-size: 15px;
+  text-transform: none;
+}
+.hs-card-category {
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: var(--hs-ink-2);
+}
+.hs-card-copy {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--hs-ink-2);
+}
+.hs-card-copy p {
+  margin: 0 0 7px;
+}
+.hs-card-group-label {
+  margin: 14px 2px 8px;
+  padding: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--hs-ink);
+}
+.hs-card-group-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hs-ink);
+  opacity: 0.18;
+}
+.hs-card-unmapped {
+  background: var(--hs-tile);
+  padding: 12px 13px;
+  margin-bottom: 8px;
+  font-size: 11.5px;
+  color: var(--hs-ink-2);
+}
+
+/* Selector: small wrapping pills. The fill is what makes selection
+   unambiguous, so it is kept — only the size was reduced. Eight fit in two
+   rows; the live maximum is five. */
+.hs-card-chips {
+  gap: 5px;
+}
+.hs-card-chip {
+  min-height: 0;
+  padding: 5px 11px;
+  border-radius: 0;
+  border: 1px solid var(--hs-rule);
+  background: var(--hs-tile);
+  color: var(--hs-ink-2);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.hs-card-chip:hover,
+.hs-card-chip.hs-on {
+  background: var(--hs-ink);
+  border-color: var(--hs-ink);
+  color: #fff;
+  font-weight: 800;
+}
+
+.hs-card-numbered li {
+  grid-template-columns: 18px 1fr;
+  gap: 9px;
+  padding: 4px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hs-ink-2);
+}
+.hs-card-number {
+  font-size: 9.5px;
+  font-weight: 900;
+}
+
+/* Links: a list, not buttons. The glyph says what will happen. */
+.hs-linklist {
+  display: flex;
+  flex-direction: column;
+}
+.hs-linkrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid #eaeae8;
+  color: var(--hs-ink);
+  text-decoration: none;
+}
+.hs-linkrow:first-child {
+  border-top: none;
+  padding-top: 2px;
+}
+.hs-linkrow:hover .hs-linkrow-text {
+  text-decoration: underline;
+}
+.hs-linkrow-glyph {
+  flex: 0 0 11px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--hs-ink-3);
+}
+.hs-linkrow-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.hs-linkrow-meta {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9a9b9c;
+  white-space: nowrap;
+}
+
+.hs-hsmap-empty {
+  background: var(--hs-tile);
+  margin: 10px 12px;
+  padding: 16px 14px;
+}
+.hs-hsmap-empty-title {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--hs-ink);
+}
+.hs-hsmap-empty-sub {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--hs-ink-2);
+}
+
+/* --- flyout: map tag on the Type row -------------------------------------- */
+.hs-flyout-rowwrap {
+  position: relative;
+}
+.hs-flyout-maptag {
+  position: absolute;
+  top: 12px;
+  right: 30px;
+  padding: 2px 5px;
+  border: 1px solid #3a3a38;
+  background: transparent;
+  color: var(--hs-ink-3);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  cursor: pointer;
+  z-index: 2;
+}
+.hs-flyout-maptag:hover,
+.hs-flyout-rowwrap.hs-on .hs-flyout-maptag {
+  border-color: var(--astute-orange);
+  color: var(--astute-orange);
+}
+/* The video sits under the Type it plays for and must continue the selected
+   row's rule as one unbroken line — no offset, no gap. */
+.hs-flyout-typemeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  margin-top: 6px;
+}
+
+/* --- responsive ------------------------------------------------------------
+   The binding constraint is height, not width: the device images are ~4:3, so
+   the width the image can use is stage height x 1.33. Below 1600px the
+   two-column card costs the map more than it gives the card. */
+@media (max-width: 1599px) {
+  :root {
+    --hs-card-w: 400px;
+  }
+  .hs-card-content.hs-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.hs-frame-body .hs-app-shell {
+  height: 100%;
+  min-height: 0;
+}
+.hs-frame-body .hs-main {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The record can exceed the panel in one-column mode. Pin the context so the
+   user always knows which area and which manufacturer they are reading while
+   the columns scroll beneath it. */
+.hs-card-selected-area {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  box-shadow: 0 8px 10px -10px rgba(33, 33, 32, 0.35);
+}
+
+.hs-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hs-card-tags li {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: #f1f1ef;
+  color: #3c3d3e;
+}
+
+
+/* ==========================================================================
+   ROUND 5 — CORRECTIONS (28 August)
+   ========================================================================== */
+
+/* The panel is a grid item. Width and flex on it are ignored; the track
+   width in .hs-hsmap-layout is what actually sizes it. */
+.hs-hsmap-panel {
+  width: auto;
+  flex: initial;
+  border-left: none;
+}
+
+/* The map stage is an object in the frame, so it loses its divider border. */
+.hs-hsmap-stage {
+  border-right: none;
+}
+
+/* Embedded PC uses .hs-hsmap-layout too, so it inherits the frame. */
+
+/* The flyout belongs to the app area, not the viewport: it must open BELOW
+   the Astute bar and ABOVE the footer, never over them. */
+.hs-flyout,
+.hs-flyout-dim {
+  top: 65px;
+  bottom: 53px;
+}
+
+/* The brand bar and footer sit above the rail and the flyout in every case. */
+.hs-brandbar,
+.hs-footbar,
+.hs-divider {
+  position: relative;
+  z-index: 200;
+}
+
+/* The new astutegroup.com centres its content in a wrapper while the bars
+   themselves run full width. */
+:root {
+  --hs-wrap: 1320px;
+}
+.hs-wrapinner {
+  width: 100%;
+  max-width: var(--hs-wrap);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+.hs-brandbar {
+  padding: 0 30px;
+}
+
+/* ---- two-level site footer, matching the new astutegroup.com ---- */
+.hs-footer {
+  flex: 0 0 auto;
+  background: var(--hs-bar);
+  color: #d6d6d3;
+}
+.hs-footer-main {
+  padding: 48px 30px 40px;
+}
+.hs-footer-cols {
+  align-items: flex-start;
+  gap: 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr));
+}
+.hs-footer-brand img {
+  display: block;
+  height: 22px;
+  width: 112px;
+}
+.hs-footer-brand p {
+  margin: 18px 0 0;
+  max-width: 30ch;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #b9b9b6;
+}
+.hs-footer-social {
+  display: flex;
+  gap: 14px;
+  margin-top: 22px;
+  color: #b9b9b6;
+}
+.hs-footer-social a {
+  color: inherit;
+  line-height: 0;
+}
+.hs-footer-social a:hover {
+  color: #ffffff;
+}
+.hs-footer-col h2 {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.hs-footer-col p {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #b9b9b6;
+}
+.hs-footer-col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hs-footer-col li {
+  margin: 0 0 10px;
+}
+.hs-footer-col a {
+  font-size: 12.5px;
+  color: #d6d6d3;
+  text-decoration: none;
+}
+.hs-footer-col a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+.hs-footer-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 52px;
+  padding: 0 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 12.5px;
+  color: #d6d6d3;
+  text-align: center;
+}
+
+@media (max-width: 1099px) {
+  .hs-footer-cols {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 36px;
+  }
+}
+
+/* Below 1200 the card becomes an overlay drawer. It is taken out of the grid,
+   so the track no longer sizes it — the width has to be set explicitly. */
+@media (max-width: 1199px) {
+  .hs-hsmap-layout {
+    grid-template-columns: minmax(0, 1fr);
+    position: relative;
+  }
+  .hs-hsmap-panel {
+    position: absolute;
+    top: 0;
+    right: 18px;
+    bottom: 18px;
+    width: var(--hs-card-w);
+    max-width: calc(100% - 36px);
+    z-index: 40;
+    box-shadow: -18px 0 40px -14px rgba(0, 0, 0, 0.55);
+  }
+}
+
+
+/* ==========================================================================
+   ROUND 5c — app bar, flyout proportions, Texta Alt
+   ========================================================================== */
+
+/* One bar above the map and the cards: breadcrumb left, Type tabs right. */
+.hs-appbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 18px 0;
+  background: #000;
+}
+.hs-crumb {
+  display: flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #8a8b8d;
+  min-width: 0;
+}
+.hs-crumb i {
+  font-style: normal;
+  padding: 0 7px;
+  color: var(--astute-orange);
+}
+.hs-crumb b {
+  font-weight: 700;
+}
+.hs-crumb .hs-crumb-now {
+  color: #ffffff;
+  font-weight: 800;
+}
+.hs-hsmap-varrow {
+  margin-left: auto;
+  padding: 0;
+  border-bottom: none;
+  gap: 22px;
+}
+/* Tabs, not pills: the active one is underlined in orange. */
+.hs-hsmap-vartab,
+.hs-hsmap-vartab.hs-on {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 4px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #8a8b8d;
+}
+.hs-hsmap-vartab:hover {
+  color: #ffffff;
+}
+.hs-hsmap-vartab.hs-on {
+  color: #ffffff;
+  box-shadow: inset 0 -2px 0 var(--astute-orange);
+}
+
+/* Flyout proportions, to the agreed design: quieter type, tighter rows, a
+   thin selection rule rather than a large outlined block. */
+.hs-flyout-row {
+  padding: 7px 15px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #c9caca;
+  min-height: 0;
+}
+.hs-flyout-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+.hs-flyout-row.hs-on {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-weight: 800;
+  box-shadow: inset 2px 0 0 var(--astute-orange);
+}
+.hs-flyout-col-title,
+.hs-flyout-coltitle {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: #6e6f70;
+}
+.hs-flyout-arrow {
+  opacity: 0.45;
+  font-size: 11px;
+}
+.hs-flyout-row-meta {
+  font-size: 11px;
+  color: #8a8b8d;
+}
+
+
+/* The rail was painting its own background and right border down past the app
+   and into the footer, giving a dark band and a vertical line on the left.
+   It sits inside a black frame now, so it needs neither: no border, and the
+   same black as the frame. The shell is also clipped to the app area. */
+.hs-frame-body .hs-app-shell {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.hs-rail {
+  background: #000;
+  border-right: none;
+}
+
+
+/* The closed flyout is parked at translateX(-100%), which puts its right edge
+   — and therefore its right border and box shadow — exactly on the rail's
+   edge, painting a dark strip and a vertical line down the page and through
+   the footer. A closed panel should paint nothing at all. */
+.hs-flyout {
+  border-right: none;
+  box-shadow: none;
+  visibility: hidden;
+}
+.hs-flyout.hs-open {
+  visibility: visible;
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+
+/* ==========================================================================
+   The whole application sits in one centred wrapper on black — brand bar,
+   app area and footer share the same left and right edges, so nothing looks
+   indented against anything else.
+   ========================================================================== */
+:root {
+  --hs-shell: 1600px;
+}
+body {
+  background: #000;
+}
+.hs-frame {
+  width: 100%;
+  max-width: var(--hs-shell);
+  margin: 0 auto;
+}
+/* The bars no longer need their own inner wrapper — the frame is the wrapper. */
+.hs-wrapinner {
+  max-width: none;
+  margin: 0;
+}
+.hs-brandbar,
+.hs-footer-main {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+.hs-footer-legal {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+
+/* The page is the same grey as the brand bar and footer, so the only black on
+   screen is the application window itself. The bars merge into the page; the
+   tool stands out. */
+body {
+  background: var(--hs-bar);
+}
+.hs-frame {
+  background: var(--hs-bar);
+}
+.hs-frame-body {
+  background: #000;
+}
+
+
+/* ==========================================================================
+   Responsive shell — the application scales with the screen instead of
+   sitting at a fixed size.
+   ========================================================================== */
+
+/* The wrapper is a proportion of the screen, so the grey margin stays the
+   same relative width at every size instead of growing on large monitors.
+   Below 1400 the margin disappears entirely and the app fills the screen. */
+/* The grey margin is proportional on smaller screens but never wider than
+   160px, so a large monitor gives the application the extra width rather than
+   the background. Below 1400 the margin disappears and the app fills the
+   screen. */
+.hs-frame {
+  width: 100%;
+  /* An earlier rule caps this at 1600px; the shell is proportional now. */
+  max-width: none;
+  margin: 0 auto;
+}
+@media (min-width: 1400px) {
+  .hs-frame {
+    width: max(83%, calc(100% - 320px));
+    max-width: none;
+  }
+}
+
+/* The cards panel scales with the application rather than the viewport: never
+   narrower than 400, never wider than 668, and 42% of the app in between. */
+.hs-hsmap-layout {
+  grid-template-columns: minmax(0, 1fr) clamp(400px, 42%, 668px);
+}
+@media (max-width: 1599px) {
+  .hs-hsmap-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(400px, 42%, 668px);
+  }
+}
+
+/* Two columns inside the card depend on how wide the CARD is, not how wide
+   the screen is — the card is now a proportion of the app, so a viewport
+   media query would get this wrong. */
+.hs-hsmap-panel {
+  container-type: inline-size;
+}
+.hs-card-content.hs-card-grid {
+  grid-template-columns: 1fr;
+}
+@container (min-width: 560px) {
+  .hs-card-content.hs-card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+/* ==========================================================================
+   ROUND 5e — the flyout belongs to the application window, not the viewport
+   ==========================================================================
+   The panel was position:fixed at left:64px, which was correct only while the
+   application filled the screen. With the centred wrapper the rail's right
+   edge is at (wrapper left + 64), so a viewport-anchored panel opened over
+   the grey margin and hung past the app's bottom edge.
+
+   Anchoring it to .hs-app-shell instead makes it correct at every width with
+   no measurement: left is the rail's edge, top and bottom are the app area's
+   own edges, and the breadcrumb inside the panel replaces the app bar's while
+   the panel is open. */
+.hs-app-shell {
+  position: relative;
+}
+.hs-flyout,
+.hs-flyout-dim {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 64px;
+}
+.hs-flyout-dim {
+  right: 0;
+}
+.hs-flyout {
+  right: auto;
+  width: min(780px, calc(100% - 64px));
+  max-width: calc(100% - 64px);
+}
+
+
+/* ==========================================================================
+   ROUND 5f — flyout selection rule on the column line, visible row arrow
+   ==========================================================================
+   Two defects against the agreed navigation design:
+
+   1. The orange selection rule was drawn on the row, but the row sat inside
+      8px of column padding, so the rule floated 8px clear of the column's
+      divider instead of running down it. The padding moves from the column
+      body to the rows themselves: rows now span the full column width, so an
+      inset rule lands exactly on the line.
+
+   2. The row arrow was #777 at 0.45 opacity — roughly #363636 on black, and
+      effectively invisible. It is a navigation affordance, so it has to read. */
+.hs-flyout-column-body {
+  padding: 8px 0;
+}
+.hs-flyout-row {
+  padding: 7px 13px;
+}
+.hs-flyout-separator {
+  margin: 8px 13px;
+}
+.hs-flyout-results {
+  padding: 10px 13px;
+}
+.hs-flyout-arrow {
+  opacity: 1;
+  color: #8a8b8d;
+  font-size: 12px;
+}
+/* The rule is 2px on the line and spans the whole row, including a Type's
+   video sub-row, which is inside the row. */
+.hs-flyout-row.hs-on {
+  box-shadow: inset 2px 0 0 var(--astute-orange);
+}
+
+/* The Type's introduction video is a pill under the Type it belongs to, per
+   the agreed navigation design — not an orange text link. */
+.hs-flyout-videopill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1e1e1c;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+.hs-flyout-videopill::before {
+  content: "\25B6";
+  font-size: 8px;
+  line-height: 1;
+}
+.hs-flyout-videopill:hover {
+  background: var(--astute-orange);
+  color: #ffffff;
+}
+
+/* A Type row can carry a video pill under its label, which made the row two
+   lines tall and dragged the arrow and the MAP tag down to the row's centre.
+   Both belong on the label's line, as in the design. */
+.hs-flyout-row {
+  align-items: flex-start;
+}
+.hs-flyout-arrow {
+  line-height: 17px;
+}
+.hs-flyout-maptag {
+  top: 9px;
+}
