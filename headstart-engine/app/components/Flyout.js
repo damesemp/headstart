@@ -46,12 +46,13 @@ function Row({ active = false, disabled = false, showArrow = !disabled, meta, ta
   );
 }
 
-function RowAction({ children, onClick }) {
+function RowAction({ children, onClick, className = "" }) {
   return (
     <span
       role="button"
       tabIndex={0}
-      style={{ color: "var(--astute-orange)", cursor: "pointer" }}
+      className={className}
+      style={className ? undefined : { color: "var(--astute-orange)", cursor: "pointer" }}
       onClick={(event) => {
         event.stopPropagation();
         onClick();
@@ -563,7 +564,12 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
                         <span className="hs-flyout-typemeta">
                           {!hasMap && <span>No hotspot map yet</span>}
                           {video && (
-                            <RowAction onClick={() => onWatchVideo(video)}>▶ Watch introduction</RowAction>
+                            <RowAction
+                              className="hs-flyout-videopill"
+                              onClick={() => onWatchVideo(video)}
+                            >
+                              Introduction video
+                            </RowAction>
                           )}
                         </span>
                       }

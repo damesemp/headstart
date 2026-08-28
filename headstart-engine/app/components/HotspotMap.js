@@ -82,7 +82,7 @@ export default function HotspotMap({
   // object-fit: contain — this is the letterbox math.
   const renderedBox = useMemo(
     () => renderedBoxFor(stageSize.w, stageSize.h, imgNatural),
-    [stageSize, imgNatural]
+    [stageSize, imgNatural],
   );
 
   const manufacturerById = useMemo(() => {
@@ -102,17 +102,22 @@ export default function HotspotMap({
   }, [data]);
 
   const mappingRows = useMemo(
-    () => (data.applicationMapping || []).filter((r) => r.applicationModel === applicationModel),
-    [data, applicationModel]
+    () =>
+      (data.applicationMapping || []).filter(
+        (r) => r.applicationModel === applicationModel,
+      ),
+    [data, applicationModel],
   );
 
   // Which Types (device variants) belong to this application model. Type
   // Name and Hotspots' Device Variant are the same string.
   const variantsForApp = useMemo(() => {
     const segment = Object.entries(SEGMENT_TO_APP).find(
-      ([, app]) => app.applicationModel === applicationModel
+      ([, app]) => app.applicationModel === applicationModel,
     )?.[0];
-    return (data.types || []).filter((t) => t.segment === segment).map((t) => t.name);
+    return (data.types || [])
+      .filter((t) => t.segment === segment)
+      .map((t) => t.name);
   }, [data, applicationModel]);
 
   // Hotspots come from the Hotspots table, NOT from Application Mapping.
@@ -124,15 +129,19 @@ export default function HotspotMap({
   const hotspotsForApp = useMemo(
     () =>
       (data.hotspots || []).filter(
-        (h) => h.status === "Live" && h.deviceVariant && variantsForApp.includes(h.deviceVariant)
+        (h) =>
+          h.status === "Live" &&
+          h.deviceVariant &&
+          variantsForApp.includes(h.deviceVariant),
       ),
-    [data, variantsForApp]
+    [data, variantsForApp],
   );
 
   const variants = useMemo(() => {
     const seen = [];
     hotspotsForApp.forEach((h) => {
-      if (h.deviceVariant && !seen.includes(h.deviceVariant)) seen.push(h.deviceVariant);
+      if (h.deviceVariant && !seen.includes(h.deviceVariant))
+        seen.push(h.deviceVariant);
     });
     return seen;
   }, [hotspotsForApp]);
@@ -169,9 +178,13 @@ export default function HotspotMap({
       // near the middle as the picture allows rather than dead centre with
       // empty space beside it — the same rule any map applies.
       setView(
-        clampView({ scale, tx: -deltaX * scale, ty: -deltaY * scale }, frameRef.current, {
-          content: box,
-        })
+        clampView(
+          { scale, tx: -deltaX * scale, ty: -deltaY * scale },
+          frameRef.current,
+          {
+            content: box,
+          },
+        ),
       );
     }
   }
@@ -213,11 +226,19 @@ export default function HotspotMap({
       chooseVariant(h.deviceVariant);
       return;
     }
-    if (!frameRef.current?.clientWidth || !frameRef.current?.clientHeight) return;
+    if (!frameRef.current?.clientWidth || !frameRef.current?.clientHeight)
+      return;
     selectHotspot(pendingHotspotId);
     onConsumedPending();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingHotspotId, pendingVariant, hotspotByHotspotId, stageSize, activeVariant, variants]);
+  }, [
+    pendingHotspotId,
+    pendingVariant,
+    hotspotByHotspotId,
+    stageSize,
+    activeVariant,
+    variants,
+  ]);
 
   function resetView() {
     setSelectedHotspotId(null);
@@ -242,16 +263,27 @@ export default function HotspotMap({
     return map;
   }, [data]);
 
-  const activeImageSrc = activeVariant ? imageByVariant[activeVariant] || null : null;
+  const activeImageSrc = activeVariant
+    ? imageByVariant[activeVariant] || null
+    : null;
 
   const rowsForSelected = useMemo(
-    () => (selectedHotspotId ? mappingRows.filter((r) => r.hotspotId === selectedHotspotId) : []),
-    [mappingRows, selectedHotspotId]
+    () =>
+      selectedHotspotId
+        ? mappingRows.filter((r) => r.hotspotId === selectedHotspotId)
+        : [],
+    [mappingRows, selectedHotspotId],
   );
 
-  const selectedHotspot = selectedHotspotId ? hotspotByHotspotId[selectedHotspotId] : null;
+  const selectedHotspot = selectedHotspotId
+    ? hotspotByHotspotId[selectedHotspotId]
+    : null;
 
-  const FIT_ORDER = { "Best Fit": 0, "Also Relevant": 1, "Related Opportunity": 2 };
+  const FIT_ORDER = {
+    "Best Fit": 0,
+    "Also Relevant": 1,
+    "Related Opportunity": 2,
+  };
   const sortedRowsForSelected = useMemo(() => {
     return [...rowsForSelected].sort((a, b) => {
       const oa = FIT_ORDER[a.fitType] ?? 9;
@@ -263,16 +295,43 @@ export default function HotspotMap({
   const sharedQuestions = sortedRowsForSelected[0]?.questions || "";
   const sharedNextActions = sortedRowsForSelected[0]?.nextActions || "";
 
+  // Round 5c — breadcrumb left, Type tabs right, in one bar above the map and
+  // the cards panel. The trail is derived from the active variant: Type Name
+  // and Hotspots' Device Variant are the same string, so the variant finds its
+  // Type, the Type finds its Segment and the Segment finds its Industry.
+  const activeType =
+    (data.types || []).find((t) => t.name === activeVariant) || null;
+  const activeSegment = activeType
+    ? (data.segments || []).find((sg) => sg.name === activeType.segment) || null
+    : null;
+  const trail = [
+    activeSegment?.industry,
+    activeType?.segment,
+    activeType?.name,
+  ].filter(Boolean);
+
   return (
-    <div className="hs-hsmap-layout">
-      <div className="hs-hsmap-stage">
+    <>
+      <div className="hs-appbar">
+        <nav className="hs-crumb" aria-label="Breadcrumb">
+          {trail.map((part, index) => (
+            <span key={part + index}>
+              {index > 0 && <i aria-hidden="true">›</i>}
+              <b className={index === trail.length - 1 ? "hs-crumb-now" : ""}>
+                {part}
+              </b>
+            </span>
+          ))}
+        </nav>
         {variants.length > 1 && (
           <div className="hs-hsmap-varrow">
             {variants.map((v) => (
               <button
                 key={v}
                 type="button"
-                className={"hs-hsmap-vartab" + (v === activeVariant ? " hs-on" : "")}
+                className={
+                  "hs-hsmap-vartab" + (v === activeVariant ? " hs-on" : "")
+                }
                 onClick={() => chooseVariant(v)}
               >
                 {v}
@@ -280,78 +339,94 @@ export default function HotspotMap({
             ))}
           </div>
         )}
-        <ZoomPanStage
-          ref={frameRef}
-          scale={view.scale}
-          tx={view.tx}
-          ty={view.ty}
-          onChange={setView}
-          onReset={resetView}
-          // The picture is letterboxed inside the frame by object-fit: contain,
-          // so the pan bounds must be measured against the picture, not the
-          // frame. Without this a landscape image (both drones) can be dragged
-          // clean off the screen while the frame still covers the stage.
-          content={renderedBox}
-          className="hs-hsmap-imgwrap"
-        >
-          {activeImageSrc ? (
-            <img
-              key={activeImageSrc}
-              src={activeImageSrc}
-              alt={activeVariant ? `${applicationModel} — ${activeVariant}` : applicationModel}
-              className="hs-hsmap-img"
-              // Without this, dragging the picture quickly on a Mac starts the
-              // browser's own image drag — the picture lifts off under a ghost
-              // preview as though you were dragging it out to save it, which is
-              // exactly what it looked like was happening.
-              draggable={false}
-              onLoad={(e) => setImgNatural({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
-            />
-          ) : (
-            <div className="hs-hsmap-noimg">
-              No application image set for this type yet.
-            </div>
-          )}
-          {visibleHotspots.map((h) => {
-            const pos = pixelForHotspot(h);
-            return (
-              <button
-                key={h.hotspotId}
-                type="button"
-                className={"hs-hsmap-dot" + (h.hotspotId === selectedHotspotId ? " hs-on" : "")}
-                style={{ left: `${pos.left}px`, top: `${pos.top}px` }}
-                title={h.label}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  selectHotspot(h.hotspotId);
-                }}
-              >
-                <span className="hs-hsmap-dotlabel">{h.label}</span>
-              </button>
-            );
-          })}
-        </ZoomPanStage>
       </div>
+      <div className="hs-hsmap-layout">
+        <div className="hs-hsmap-stage">
+          <ZoomPanStage
+            ref={frameRef}
+            scale={view.scale}
+            tx={view.tx}
+            ty={view.ty}
+            onChange={setView}
+            onReset={resetView}
+            // The picture is letterboxed inside the frame by object-fit: contain,
+            // so the pan bounds must be measured against the picture, not the
+            // frame. Without this a landscape image (both drones) can be dragged
+            // clean off the screen while the frame still covers the stage.
+            content={renderedBox}
+            className="hs-hsmap-imgwrap"
+          >
+            {activeImageSrc ? (
+              <img
+                key={activeImageSrc}
+                src={activeImageSrc}
+                alt={
+                  activeVariant
+                    ? `${applicationModel} — ${activeVariant}`
+                    : applicationModel
+                }
+                className="hs-hsmap-img"
+                // Without this, dragging the picture quickly on a Mac starts the
+                // browser's own image drag — the picture lifts off under a ghost
+                // preview as though you were dragging it out to save it, which is
+                // exactly what it looked like was happening.
+                draggable={false}
+                onLoad={(e) =>
+                  setImgNatural({
+                    w: e.target.naturalWidth,
+                    h: e.target.naturalHeight,
+                  })
+                }
+              />
+            ) : (
+              <div className="hs-hsmap-noimg">
+                No application image set for this type yet.
+              </div>
+            )}
+            {visibleHotspots.map((h) => {
+              const pos = pixelForHotspot(h);
+              return (
+                <button
+                  key={h.hotspotId}
+                  type="button"
+                  className={
+                    "hs-hsmap-dot" +
+                    (h.hotspotId === selectedHotspotId ? " hs-on" : "")
+                  }
+                  style={{ left: `${pos.left}px`, top: `${pos.top}px` }}
+                  title={h.label}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectHotspot(h.hotspotId);
+                  }}
+                >
+                  <span className="hs-hsmap-dotlabel">{h.label}</span>
+                </button>
+              );
+            })}
+          </ZoomPanStage>
+        </div>
 
-      <CardsPanel
-        selection={
-          selectedHotspot
-            ? {
-                kind: "hotspot",
-                hotspot: selectedHotspot,
-                rows: sortedRowsForSelected,
-                manufacturerById,
-                sharedQuestions,
-                sharedNextActions,
-              }
-            : null
-        }
-        onResetSelection={() => {
-          setSelectedHotspotId(null);
-          onHotspotSelectionChange(null);
-        }}
-      />
-    </div>
+        <CardsPanel
+          selection={
+            selectedHotspot
+              ? {
+                  kind: "hotspot",
+                  hotspot: selectedHotspot,
+                  rows: sortedRowsForSelected,
+                  manufacturerById,
+                  sharedQuestions,
+                  sharedNextActions,
+                }
+              : null
+          }
+          onResetSelection={() => {
+            setSelectedHotspotId(null);
+            onHotspotSelectionChange(null);
+          }}
+        />
+      </div>
+    </>
   );
 }
