@@ -1,39 +1,62 @@
 "use client";
 
-// Outbound links for one manufacturer's card — website (always in Airtable),
-// featured link (optional), PDF (optional, permanent Vercel Blob URL).
-// Shared by the live Airtable-driven cards panel for hotspot and Embedded
-// PC manufacturer selections.
+// Round 5 — not buttons. Three buttons were three competing shapes for what is
+// a list of three destinations. A stacked, hairline-separated list instead,
+// with a glyph on the left saying what will happen: arrow out for a new tab,
+// arrow down for a download. See HEADSTART_BUILD_INSTRUCTIONS_5.md 7.4.
 export default function ManufacturerLinks({ manufacturer }) {
   const links = [];
+
   if (manufacturer.website) {
-    links.push({ href: manufacturer.website, label: "Website" });
+    links.push({
+      href: manufacturer.website,
+      text: String(manufacturer.website)
+        .replace(/^https?:\/\//, "")
+        .replace(/\/$/, ""),
+      meta: "Website",
+      kind: "out",
+    });
   }
   if (manufacturer.featuredLinkUrl) {
     links.push({
       href: manufacturer.featuredLinkUrl,
-      label: manufacturer.featuredLinkLabel || "Featured link",
+      text: manufacturer.featuredLinkLabel || "Featured link",
+      meta: "Astute",
+      kind: "out",
     });
   }
   if (manufacturer.pdfUrl) {
-    links.push({ href: manufacturer.pdfUrl, label: "PDF" });
+    links.push({
+      href: manufacturer.pdfUrl,
+      text: "Line card",
+      meta: "PDF",
+      kind: "down",
+    });
   }
 
   if (!links.length) return null;
 
   return (
-    <div className="hs-card-links">
-      {links.map((l) => (
-        <a
-          key={l.label + l.href}
-          className="hs-card-link"
-          href={l.href}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {l.label}
-        </a>
-      ))}
-    </div>
+    <section className="hs-card-section">
+      <h3 className="hs-card-heading">Links</h3>
+      <div className="hs-linklist">
+        {links.map((link) => (
+          <a
+            key={link.meta + link.href}
+            className="hs-linkrow"
+            href={link.href}
+            target="_blank"
+            rel="noreferrer noopener"
+            {...(link.kind === "down" ? { download: "" } : {})}
+          >
+            <span className="hs-linkrow-glyph" aria-hidden="true">
+              {link.kind === "down" ? "↓" : "↗"}
+            </span>
+            <span className="hs-linkrow-text">{link.text}</span>
+            <span className="hs-linkrow-meta">{link.meta}</span>
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }

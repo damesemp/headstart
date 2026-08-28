@@ -18,8 +18,8 @@ function Column({ title, children }) {
   );
 }
 
-function Row({ active = false, disabled = false, showArrow = !disabled, meta, onClick, children, className = "" }) {
-  return (
+function Row({ active = false, disabled = false, showArrow = !disabled, meta, tag = null, onClick, children, className = "" }) {
+  const row = (
     <button
       type="button"
       className={`hs-flyout-row${active ? " hs-on" : ""}${disabled ? " hs-flyout-disabled" : ""}${
@@ -34,6 +34,15 @@ function Row({ active = false, disabled = false, showArrow = !disabled, meta, on
       </span>
       {showArrow && <span className="hs-flyout-arrow">›</span>}
     </button>
+  );
+  // A tag is its own control, so it renders as a sibling of the row rather
+  // than nested inside it — a button inside a button is invalid HTML.
+  if (!tag) return row;
+  return (
+    <div className={`hs-flyout-rowwrap${active ? " hs-on" : ""}`}>
+      {row}
+      {tag}
+    </div>
   );
 }
 
@@ -528,14 +537,31 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
                       showArrow={hasMap}
                       className={!hasMap ? "hs-flyout-disabled" : ""}
                       onClick={hasMap ? () => selectType(type) : undefined}
+                      // Round 5. "Open map" was a full-width button on every Type
+                      // row; almost every Type has a map, so it repeated down the
+                      // whole column and stopped carrying meaning. It is now a
+                      // compact MAP tag — still a control, not a label, so no
+                      // action is lost. The video is rare, so it stays a button,
+                      // and it hangs off the Type it plays for rather than sitting
+                      // at the foot of the column.
+                      tag={
+                        hasMap ? (
+                          <button
+                            type="button"
+                            className="hs-flyout-maptag"
+                            title={`Open the ${type.name} map`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onGo({ view: app.view, hotspotId: null, variant: type.name });
+                            }}
+                          >
+                            Map
+                          </button>
+                        ) : null
+                      }
                       meta={
-                        <span style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
+                        <span className="hs-flyout-typemeta">
                           {!hasMap && <span>No hotspot map yet</span>}
-                          {hasMap && (
-                            <RowAction onClick={() => onGo({ view: app.view, hotspotId: null, variant: type.name })}>
-                              Open map ↗
-                            </RowAction>
-                          )}
                           {video && (
                             <RowAction onClick={() => onWatchVideo(video)}>▶ Watch introduction</RowAction>
                           )}
