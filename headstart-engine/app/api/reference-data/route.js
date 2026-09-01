@@ -164,7 +164,12 @@ function buildManufacturerApplicationIndex(mapping) {
 
 export async function GET() {
   try {
-    const showInModelFormula = `{${FIELDS.APPLICATION_MAPPING.SHOW_IN_MODEL}} = TRUE()`;
+    // Review Status is the single publishing gate. A mapping row reaches the
+    // tool only when someone has approved it; Draft, Needs Review and Rejected
+    // all stay invisible. "Show in Model" was a second, independent switch —
+    // two gates meant a row could be approved and still not publish, with no
+    // way to tell which one was holding it. Retired 28 Aug 2026 (Damian);
+    // approving a row is now the act that publishes it.
 
     const [
       manufacturerRecords,
@@ -178,7 +183,7 @@ export async function GET() {
     ] = await Promise.all([
       airtableFetchAll(TABLES.MANUFACTURERS),
       airtableFetchAll(TABLES.HOTSPOTS),
-      airtableFetchAll(TABLES.APPLICATION_MAPPING, { filterByFormula: showInModelFormula }),
+      airtableFetchAll(TABLES.APPLICATION_MAPPING, { filterByFormula: `{${FIELDS.APPLICATION_MAPPING.REVIEW_STATUS}} = "Approved"` }),
       airtableFetchAll(TABLES.COMPETITOR_TRIGGERS),
       airtableFetchAll(TABLES.VIDEOS),
       airtableFetchAll(TABLES.SEGMENTS),
