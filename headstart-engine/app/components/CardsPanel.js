@@ -144,10 +144,10 @@ export default function CardsPanel({
           .filter(Boolean)
           .join(" · ")
     : "";
+  // 1 Sep 2026 — card shows the short description only. Long Description is
+  // no longer pulled in; kept in Airtable/the data model, just not rendered.
   const details = manufacturer
-    ? [manufacturer.shortDescription, manufacturer.longDescription].filter(
-        hasValue,
-      )
+    ? [manufacturer.shortDescription].filter(hasValue)
     : [];
   const whyThisManufacturerFits =
     mappingRow?.whyThisLineFits || manufacturer?.coreAdvantages || "";
@@ -217,31 +217,29 @@ export default function CardsPanel({
               count={manufacturerEntries.length}
               className="hs-card-span"
             >
-              {selection.kind === "subcategory" ? (
-                <div className="hs-card-copy">
-                  {manufacturerEntries
-                    .map((entry) => entry.manufacturer.name)
-                    .join(", ")}
-                </div>
-              ) : (
-                <div className="hs-card-chips">
-                  {manufacturerEntries.map((entry) => (
-                    <button
-                      key={entry.manufacturer.id}
-                      type="button"
-                      className={`hs-card-chip${entry.manufacturer.id === activeManufacturerId ? " hs-on" : ""}`}
-                      onClick={() =>
-                        setChipSelection({
-                          selectionKey,
-                          manufacturerId: entry.manufacturer.id,
-                        })
-                      }
-                    >
-                      {entry.manufacturer.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* 1 Sep 2026 — Embedded PC's subcategory selection used to
+                  render this as a plain comma-separated line while every
+                  hotspot map rendered clickable chips. Same section, same
+                  data shape (a list of manufacturers to switch between) —
+                  it must behave the same way everywhere. One chip list,
+                  every selection kind. */}
+              <div className="hs-card-chips">
+                {manufacturerEntries.map((entry) => (
+                  <button
+                    key={entry.manufacturer.id}
+                    type="button"
+                    className={`hs-card-chip${entry.manufacturer.id === activeManufacturerId ? " hs-on" : ""}`}
+                    onClick={() =>
+                      setChipSelection({
+                        selectionKey,
+                        manufacturerId: entry.manufacturer.id,
+                      })
+                    }
+                  >
+                    {entry.manufacturer.name}
+                  </button>
+                ))}
+              </div>
             </Section>
           )}
 

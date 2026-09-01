@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CATEGORY_COLORS, PC_LAYOUT, PC_ATTACH } from "../lib/pcCategories";
 import ZoomPanStage from "./ZoomPanStage";
 import CardsPanel from "./CardsPanel";
@@ -19,12 +19,76 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [view, setView] = useState({ scale: 1, tx: 0, ty: 0 });
   const frameRef = useRef(null);
+  // Holds a { category, subcategory } target set the moment a manufacturer
+  // is selected from outside this component (search, the flyout's
+  // manufacturer list). The layout effect below reads it once the anchor
+  // category's subboxes have actually painted, then clears it.
+  const pendingCenterRef = useRef(null);
 
   useEffect(() => {
     setAnchor(null);
     setSelectedSubcategory(null);
     setView({ scale: 1, tx: 0, ty: 0 });
+    pendingCenterRef.current = null;
   }, [resetSignal]);
+
+  // Centre the view on a given box/subbox element, the same "smart zoom"
+  // math selectSubcategory has always used for a click. Factored out so the
+  // search/flyout path (below) can drive the same zoom a manual click does.
+  function centerOn(element) {
+    const frame = frameRef.current;
+    if (!frame || !element) return;
+    const target = element.closest(".hs-pc-subbox") || element;
+    let x = target.offsetWidth / 2;
+    let y = target.offsetHeight / 2;
+    let node = target;
+    while (node && node !== frame) {
+      x += node.offsetLeft || 0;
+      y += node.offsetTop || 0;
+      node = node.offsetParent;
+    }
+    if (node !== frame) return;
+    const scale = 1.55;
+    setView({
+      scale,
+      tx: -(x - frame.offsetWidth / 2) * scale,
+      ty: -(y - frame.offsetHeight / 2) * scale,
+    });
+  }
+
+  // Search and the flyout's manufacturer list both select a manufacturer by
+  // setting the same `selectedManufacturer` prop — previously that only
+  // populated the cards panel; the map itself never moved, so the result
+  // was correct data with no visible link back to where it lives on the
+  // diagram (Damian, 1 Sep 2026). Expand that manufacturer's category and
+  // queue a centre-on-it zoom exactly like clicking its subcategory would.
+  useEffect(() => {
+    if (!selectedManufacturer) return;
+    const cat = selectedManufacturer.linecardCategory || "Uncategorised";
+    const subs =
+      selectedManufacturer.subcategory && selectedManufacturer.subcategory.length
+        ? selectedManufacturer.subcategory
+        : ["Other"];
+    const sub = subs[0];
+    setSelectedSubcategory(null);
+    pendingCenterRef.current = { category: cat, subcategory: sub };
+    setAnchor(cat);
+  }, [selectedManufacturer]);
+
+  // Runs after the anchor's expanded subboxes have committed to the DOM
+  // (useLayoutEffect, not useEffect, so the browser paints already
+  // centred rather than flashing the old view first).
+  useLayoutEffect(() => {
+    const pending = pendingCenterRef.current;
+    if (!pending || pending.category !== anchor) return;
+    pendingCenterRef.current = null;
+    const frame = frameRef.current;
+    if (!frame) return;
+    const el = frame.querySelector(
+      `[data-pc-cat="${CSS.escape(pending.category)}"][data-pc-sub="${CSS.escape(pending.subcategory)}"]`
+    );
+    if (el) centerOn(el);
+  }, [anchor]);
 
   // Group every manufacturer by its real Linecard Category / Subcategory —
   // computed live, not a hardcoded subset. Keeps the full manufacturer
@@ -62,25 +126,7 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
   function selectSubcategory(categoryName, subcategoryName, manufacturers, element) {
     onSelectManufacturer(null);
     setSelectedSubcategory({ category: categoryName, subcategory: subcategoryName, manufacturers });
-
-    const frame = frameRef.current;
-    if (!frame || !element) return;
-    const target = element.closest(".hs-pc-subbox") || element;
-    let x = target.offsetWidth / 2;
-    let y = target.offsetHeight / 2;
-    let node = target;
-    while (node && node !== frame) {
-      x += node.offsetLeft || 0;
-      y += node.offsetTop || 0;
-      node = node.offsetParent;
-    }
-    if (node !== frame) return;
-    const scale = 1.55;
-    setView({
-      scale,
-      tx: -(x - frame.offsetWidth / 2) * scale,
-      ty: -(y - frame.offsetHeight / 2) * scale,
-    });
+    centerOn(element);
   }
 
   function clearSelection() {
@@ -146,6 +192,8 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
                   (selectedSubcategory?.category === name && selectedSubcategory?.subcategory === sub ? " hs-on" : "")
                 }
                 key={sub}
+                data-pc-cat={name}
+                data-pc-sub={sub}
               >
                 <button
                   type="button"
@@ -207,7 +255,14 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
             <div className="hs-pc-mid">
               <div className="hs-pc-stack">{PC_LAYOUT.leftStack.map(renderBox)}</div>
               <div className="hs-pc-centre">
-                <div className="hs-pc-row">{PC_LAYOUT.brain.map(renderBox)}</div>
+                {/* 1 Sep 2026 — block-diagram feel restored around the
+                    processing pair, kept flat/square/monochrome to match
+                    the rest of the D1 redesign rather than the old
+                    prototype's colourful rounded version. */}
+                <div className="hs-pc-core-wrap">
+                  <div className="hs-pc-core-label">Applications Processing</div>
+                  <div className="hs-pc-row hs-pc-core-row">{PC_LAYOUT.brain.map(renderBox)}</div>
+                </div>
                 <div className="hs-pc-row">{PC_LAYOUT.centreBelow.map(renderBox)}</div>
                 <div className="hs-pc-row">{PC_LAYOUT.centreRow2.map(renderBox)}</div>
               </div>
