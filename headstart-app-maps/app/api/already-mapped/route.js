@@ -19,7 +19,7 @@ export async function GET(request) {
   );
   liveParams.set("fields[]", "Application Model");
   liveParams.append("fields[]", "Fit Type");
-  liveParams.append("fields[]", "Show in Model");
+  liveParams.append("fields[]", "Review Status");
 
   const pendingParams = new URLSearchParams();
   pendingParams.set("pageSize", "20");
@@ -45,7 +45,9 @@ export async function GET(request) {
       id: r.id,
       applicationModel: r.fields["Application Model"] || "",
       fitType: r.fields["Fit Type"] || "",
-      showInModel: !!r.fields["Show in Model"],
+      // "Show in Model" was deleted on 28 Aug 2026. A mapping is live
+      // when it is Approved — that is now the Engine's only gate.
+      showInModel: r.fields["Review Status"] === "Approved",
     }));
 
   const pending = (pendingData.records || [])
