@@ -13,9 +13,13 @@ export async function GET(request) {
 
   const liveParams = new URLSearchParams();
   liveParams.set("pageSize", "20");
+  // Match on the Mapping ID formula field ("<hotspot> – <manufacturer>"),
+  // which is plain text. ARRAYJOIN over the linked-record field returned
+  // nothing for manufacturers that plainly had approved mappings, so the
+  // panel showed no live rows at all. (1 Sep 2026.)
   liveParams.set(
     "filterByFormula",
-    `FIND(LOWER("${safe}"), LOWER(ARRAYJOIN({Relevant Astute Line})))`
+    `FIND(LOWER("${safe}"), LOWER({Mapping ID} & ""))`
   );
   liveParams.set("fields[]", "Application Model");
   liveParams.append("fields[]", "Fit Type");
@@ -50,7 +54,14 @@ export async function GET(request) {
       showInModel: r.fields["Review Status"] === "Approved",
     }));
 
+  // A request that has been converted is already showing in the live list as
+  // the mapping it became, and a rejected one is not coming back. Neither
+  // belongs in a panel labelled "already mapped" as PENDING.
   const pending = (pendingData.records || [])
+    .filter((r) => {
+      const status = r.fields["Status"] || "";
+      return status !== "Converted to Application Mapping" && status !== "Rejected";
+    })
     .reverse()
     .slice(0, 5)
     .map((r) => ({
