@@ -2304,3 +2304,40 @@ body {
 .hs-flyout-reset {
   font-size: 15px;
 }
+
+/* 1 Sep 2026 — manufacturer logo, moved to sit beside the Manufacturer
+   Headline text rather than the franchise name. Most real logos are wide
+   wordmarks (confirmed against the one logo supplied so far), so the box
+   is sized by height with width free, not forced square. Falls back to no
+   image at all when a manufacturer has no logo yet (every record today) —
+   see manufacturerShape() in app/api/reference-data/route.js. */
+.hs-card-headline-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hs-card-headline-logo {
+  height: 40px;
+  width: auto;
+  max-width: 150px;
+  flex: 0 0 auto;
+  background: var(--hs-tile);
+  border: 1px solid var(--hs-rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  box-sizing: border-box;
+}
+.hs-card-headline-logo img {
+  max-width: 130px;
+  max-height: 30px;
+  object-fit: contain;
+  display: block;
+}
+.hs-card-headline-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--hs-ink);
+  line-height: 1.35;
+}

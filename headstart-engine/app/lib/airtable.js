@@ -46,6 +46,13 @@ export const FIELDS = {
     // confirmed via live schema check 18 August 2026.
     CORE_ADVANTAGES: "fldW2pEdBboSh8ehd",
     QUALITY_CERTIFICATIONS: "fldzHeJALNFwY7n29",
+    // Added 1 Sep 2026 for the card's Product Lifecycle section and the
+    // logo shown beside the Manufacturer Headline. Product Lifecycle
+    // (Export) is the same "<<>>"-joined-formula pattern as Key Products
+    // and Industries. Manufacturer Logo is an attachment field — empty on
+    // all 157 records today; card falls back to no image when empty.
+    PRODUCT_LIFECYCLE: "fldzGsbLLDNSGMLOI",
+    LOGO: "fldhMWe2KE7WeWjrP",
   },
   APPLICATION_MAPPING: {
     MAPPING_ID: "fldxjSmK4myWDLiyc",

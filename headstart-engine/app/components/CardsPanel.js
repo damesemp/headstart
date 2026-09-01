@@ -39,6 +39,27 @@ function Tags({ value }) {
   );
 }
 
+// 1 Sep 2026 — every one of the 157 Core Advantages records follows this
+// exact "Best Deployed When: ... Solves problems in: ..." convention
+// (confirmed against the live base, not assumed). Bolding the two labels
+// needs no Airtable change — it's a fixed phrasing, not per-record data.
+function WhyThisFits({ value }) {
+  const text = String(value || "");
+  if (!text) return null;
+  const parts = text.split(/(Best Deployed When:|Solves problems in:)/);
+  return (
+    <div className="hs-card-copy">
+      {parts.map((part, index) =>
+        part === "Best Deployed When:" || part === "Solves problems in:" ? (
+          <strong key={index}>{part}</strong>
+        ) : (
+          part
+        ),
+      )}
+    </div>
+  );
+}
+
 function NumberedLines({ value }) {
   const lines = String(value || "")
     .split("\n")
@@ -263,28 +284,44 @@ export default function CardsPanel({
                   user reads, ending on the links: read, then act. The right is
                   short reference and action blocks to scan mid-call, so the
                   questions sit beside the products they refer to rather than a
-                  screen below them. Applications and Industries were removed:
-                  the user has already chosen an industry and an application
-                  area to get here. */}
+                  screen below them. */}
                 {/* Round 5 correction, 28 August: Embedded PC used to put
                     Details before Headline while the hotspot map did the
                     reverse, so the card reordered itself depending on how the
                     user arrived. One order now, both paths. */}
-                <Section
-                  heading="Manufacturer Headline"
-                  value={manufacturer.headline}
-                />
-                <Section heading="Manufacturer Details" value={details}>
-                  <div className="hs-card-copy">
-                    {details.map((paragraph, index) => (
-                      <p key={`${index}-${paragraph}`}>{paragraph}</p>
-                    ))}
-                  </div>
-                </Section>
+                {/* 1 Sep 2026 — Headline/Details no longer carry their own
+                    section labels ("Manufacturer Headline" / "Manufacturer
+                    Details"): the copy reads fine without them, and the logo
+                    now sits beside the headline instead of a label. Falls
+                    back to no image when the manufacturer has no logo yet
+                    (every record today). */}
+                {hasValue(manufacturer.headline) && (
+                  <section className="hs-card-section">
+                    <div className="hs-card-headline-row">
+                      {manufacturer.logoUrl && (
+                        <div className="hs-card-headline-logo">
+                          <img src={manufacturer.logoUrl} alt={`${manufacturer.name} logo`} />
+                        </div>
+                      )}
+                      <div className="hs-card-headline-text">{manufacturer.headline}</div>
+                    </div>
+                  </section>
+                )}
+                {hasValue(details) && (
+                  <section className="hs-card-section">
+                    <div className="hs-card-copy">
+                      {details.map((paragraph, index) => (
+                        <p key={`${index}-${paragraph}`}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </section>
+                )}
                 <Section
                   heading="Why This Manufacturer Fits"
                   value={whyThisManufacturerFits}
-                />
+                >
+                  <WhyThisFits value={whyThisManufacturerFits} />
+                </Section>
                 <ManufacturerLinks manufacturer={manufacturer} />
               </div>
 
@@ -294,6 +331,27 @@ export default function CardsPanel({
                   value={manufacturer.keyProducts}
                 >
                   <Tags value={manufacturer.keyProducts} />
+                </Section>
+                {/* 1 Sep 2026 — Industries added back for internal sales:
+                    seeing a manufacturer's other industries is a cross-sell
+                    signal ("attach one franchise to another"). Product
+                    Lifecycle added for the same audience — Astute's own
+                    lifecycle/obsolescence pitch, in the manufacturer's own
+                    words. Applications was considered and deliberately left
+                    out: it reads as a second, competing sense of
+                    "application" against the engine's own Application
+                    Mapping / Application Areas. */}
+                <Section
+                  heading="Industries"
+                  value={manufacturer.industries}
+                >
+                  <Tags value={manufacturer.industries} />
+                </Section>
+                <Section
+                  heading="Product Lifecycle"
+                  value={manufacturer.productLifecycle}
+                >
+                  <Tags value={manufacturer.productLifecycle} />
                 </Section>
                 <Section
                   heading="Quality & Certifications"

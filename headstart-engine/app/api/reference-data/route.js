@@ -36,6 +36,15 @@ function manufacturerShape(record) {
     // when a given hotspot mapping row has no per-hotspot text of its own.
     coreAdvantages: f[FIELDS.MANUFACTURERS.CORE_ADVANTAGES] || "",
     qualityCertifications: f[FIELDS.MANUFACTURERS.QUALITY_CERTIFICATIONS] || "",
+    // Added 1 Sep 2026 — card's Product Lifecycle section and manufacturer
+    // logo. Logo is an Airtable attachment field: raw attachment URLs
+    // expire after a few hours, unlike the PDF/featured-link fields above
+    // which were deliberately moved to permanent Vercel Blob URLs. Fine for
+    // now since the field is empty on every record; before real logos are
+    // uploaded here, this needs the same Blob-URL treatment as the PDF
+    // field, or logos will silently stop loading a few hours after upload.
+    productLifecycle: f[FIELDS.MANUFACTURERS.PRODUCT_LIFECYCLE] || "",
+    logoUrl: (f[FIELDS.MANUFACTURERS.LOGO] || [])[0]?.url || null,
   };
 }
 
