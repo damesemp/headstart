@@ -286,6 +286,7 @@ const styles = {
 };
 
 function badgeStyle(status) {
+  if (status === "Live") return { background: "#e1f5ee", color: "#085041" };
   if (status === "Promoted") return { background: "#e1f5ee", color: "#085041" };
   if (status === "Rejected") return { background: "#faecea", color: "#8a2c22" };
   return { background: "#faf1de", color: "#7a5108" };
@@ -862,7 +863,7 @@ export default function ApplicationMapPage() {
                       <div style={styles.mappedRow} key={i}>
                         <div>
                           <div style={{ fontSize: 15 }}>{r.product}</div>
-                          <div style={{ fontSize: 12, color: "#8a8880", marginTop: 2 }}>{r.status}</div>
+                          <div style={{ fontSize: 12, color: "#8a8880", marginTop: 2 }}>{r.detail || r.status}</div>
                         </div>
                         <span style={{ ...styles.badge, ...badgeStyle(r.status) }}>{r.status}</span>
                       </div>
