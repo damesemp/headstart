@@ -274,6 +274,15 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
     selectIndustry(segment.industry);
     setSegmentName(segment.name);
     selectType(type);
+    // FIX (2026-10-05): this branch never called onGo, so a search-selected
+    // Type only updated the flyout's own column state (highlighted the row,
+    // showed the System column) without ever switching the main view to that
+    // Type's map. Every sibling search handler (segment, area, hotspot)
+    // navigates via onGo; Type was the one silent exception. Disabled/no-map
+    // types never reach here (gated by `disabled` on the search result and
+    // on the Type row itself), so segment and app are always valid below.
+    const app = appForSegment(segment.name);
+    if (app) onGo({ view: app.view, hotspotId: null, variant: type.name });
   }
 
   function navigateToArea(area) {
