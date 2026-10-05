@@ -144,10 +144,12 @@ export default function CardsPanel({
     selection?.kind === "subcategory"
       ? `Which manufacturer within ${selection.subcategory} is being considered?\nIs this requirement driven by performance, availability, lifecycle or cost?`
       : "";
-  const subcategoryNextActions =
-    selection?.kind === "subcategory"
-      ? "Select a specific franchise below to show its positioning and product data."
-      : "";
+  // REMOVED (5 Oct 2026, Damian): this used to synthesise a fixed "Select a
+  // specific franchise..." Next Actions line for every subcategory
+  // selection. Dropped outright rather than reworded — Next Actions still
+  // renders normally from real data (mappingRow.nextActions /
+  // selection.sharedNextActions) wherever that exists.
+  const subcategoryNextActions = "";
   const questions =
     mappingRow?.questions ||
     subcategoryQuestions ||
@@ -158,9 +160,16 @@ export default function CardsPanel({
     subcategoryNextActions ||
     selection?.sharedNextActions ||
     "";
+  // FIX (5 Oct 2026): for a subcategory selection, the subcategory name is
+  // already shown as the card's own "Selected Area" heading above. Repeating
+  // "category · subcategory" here just restated the same subcategory a
+  // second time in smaller type. Show only the parent category on this
+  // line; the direct-manufacturer path (no "Selected Area" heading above
+  // it) keeps the full category · subcategory breadcrumb, since nothing
+  // else on the card states the subcategory there.
   const categoryLine = manufacturer
     ? selection?.kind === "subcategory"
-      ? [selection.category, selection.subcategory].join(" · ")
+      ? selection.category
       : [manufacturer.linecardCategory, ...(manufacturer.subcategory || [])]
           .filter(Boolean)
           .join(" · ")
@@ -243,7 +252,9 @@ export default function CardsPanel({
                   hotspot map rendered clickable chips. Same section, same
                   data shape (a list of manufacturers to switch between) —
                   it must behave the same way everywhere. One chip list,
-                  every selection kind. */}
+                  every selection kind — including a single entry: a
+                  consistent, always-clickable list beats a layout that
+                  changes shape depending on count (Damian, 5 Oct 2026). */}
               <div className="hs-card-chips">
                 {manufacturerEntries.map((entry) => (
                   <button
@@ -269,6 +280,15 @@ export default function CardsPanel({
               <div className="hs-card-group-label hs-card-span">Target</div>
 
               <div className="hs-card-col hs-card-col-left">
+                {/* FIX (5 Oct 2026, Damian): franchise name, headline and
+                    short description used to be three separate
+                    hs-card-section blocks, each with its own section
+                    spacing — so a single franchise's own text read as three
+                    stacked cards instead of one. Same fonts/weights/markup
+                    as before (hs-card-title, hs-card-category,
+                    hs-card-headline-row/-text, hs-card-copy), just nested
+                    inside one section so it reads as a single block: name,
+                    headline, description. */}
                 <Section
                   heading="Astute Franchise"
                   value={manufacturer.name}
@@ -278,25 +298,7 @@ export default function CardsPanel({
                   {categoryLine && (
                     <div className="hs-card-category">{categoryLine}</div>
                   )}
-                </Section>
-
-                {/* Round 5 — two columns. The left column is the narrative the
-                  user reads, ending on the links: read, then act. The right is
-                  short reference and action blocks to scan mid-call, so the
-                  questions sit beside the products they refer to rather than a
-                  screen below them. */}
-                {/* Round 5 correction, 28 August: Embedded PC used to put
-                    Details before Headline while the hotspot map did the
-                    reverse, so the card reordered itself depending on how the
-                    user arrived. One order now, both paths. */}
-                {/* 1 Sep 2026 — Headline/Details no longer carry their own
-                    section labels ("Manufacturer Headline" / "Manufacturer
-                    Details"): the copy reads fine without them, and the logo
-                    now sits beside the headline instead of a label. Falls
-                    back to no image when the manufacturer has no logo yet
-                    (every record today). */}
-                {hasValue(manufacturer.headline) && (
-                  <section className="hs-card-section">
+                  {hasValue(manufacturer.headline) && (
                     <div className="hs-card-headline-row">
                       {manufacturer.logoUrl && (
                         <div className="hs-card-headline-logo">
@@ -305,17 +307,16 @@ export default function CardsPanel({
                       )}
                       <div className="hs-card-headline-text">{manufacturer.headline}</div>
                     </div>
-                  </section>
-                )}
-                {hasValue(details) && (
-                  <section className="hs-card-section">
+                  )}
+                  {hasValue(details) && (
                     <div className="hs-card-copy">
                       {details.map((paragraph, index) => (
                         <p key={`${index}-${paragraph}`}>{paragraph}</p>
                       ))}
                     </div>
-                  </section>
-                )}
+                  )}
+                </Section>
+
                 <Section
                   heading="Why This Manufacturer Fits"
                   value={whyThisManufacturerFits}
@@ -353,10 +354,11 @@ export default function CardsPanel({
                 >
                   <Tags value={manufacturer.productLifecycle} />
                 </Section>
-                <Section
-                  heading="Quality & Certifications"
-                  value={manufacturer.qualityCertifications}
-                />
+                {/* REMOVED (5 Oct 2026, Damian): Quality & Certifications
+                    section dropped from the card entirely — not required
+                    for the overview information. manufacturer.
+                    qualityCertifications is left in the data model/Airtable,
+                    just not read here. */}
                 {(hasValue(questions) || hasValue(nextActions)) && (
                   <div className="hs-card-group-label">Ask &amp; Act</div>
                 )}
