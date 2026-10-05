@@ -28,6 +28,7 @@ export async function GET(request) {
 
     const params = new URLSearchParams();
     params.set("pageSize", "25");
+    params.set("returnFieldsByFieldId", "true");
     if (q) {
       const escaped = q.replace(/"/g, '\\"');
       params.set(
@@ -36,7 +37,12 @@ export async function GET(request) {
       );
     }
 
-    const data = await airtableFetch(manufacturerLinksPath(`?${params.toString()}`));
+    // Built directly, not via manufacturerLinksPath() — that helper already
+    // appends its own "?returnFieldsByFieldId=true", which combined with a
+    // second query string here produced two "?" in the URL (caught in
+    // review, 5 Oct 2026). manufacturerLinksPath() is still correct for
+    // PATCH below, where the suffix is just "/{id}" with no query of its own.
+    const data = await airtableFetch(`/${TABLES.MANUFACTURERS}?${params.toString()}`);
     const results = (data.records || []).map(shape).sort((a, b) => a.name.localeCompare(b.name));
     return Response.json({ results });
   } catch (error) {
