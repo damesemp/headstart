@@ -579,14 +579,6 @@ body {
   padding: 64px 12px 32px;
 }
 
-.hs-pc-note {
-  font-size: 13px;
-  color: #6a6a66;
-  margin-bottom: 18px;
-  max-width: 640px;
-  line-height: 1.5;
-}
-
 .hs-pc-mfrlink {
   background: none;
   border: none;

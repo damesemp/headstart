@@ -236,10 +236,6 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
   return (
     <div className="hs-hsmap-layout">
       <div className="hs-hsmap-stage hs-pc-stage">
-        <div className="hs-pc-note">
-          Click a category to see every subcategory and the real manufacturers in it. Click a
-          manufacturer's name to see its details. Companion categories highlight automatically.
-        </div>
         <ZoomPanStage
           ref={frameRef}
           scale={view.scale}
