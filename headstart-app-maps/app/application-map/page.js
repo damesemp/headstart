@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import VideosTab from "./VideosTab";
 import HotspotsTab from "./HotspotsTab";
+import ManufacturerLinksTab from "./ManufacturerLinksTab";
 
 const ACCENT = "#3EC2CF";
 const ACCENT_DARK = "#0d838d";
@@ -696,12 +697,24 @@ export default function ApplicationMapPage() {
             >
               Hotspots
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "links"}
+              style={{
+                ...styles.tab,
+                ...(activeTab === "links" ? { color: ACCENT_DARK, borderBottomColor: ACCENT } : {})
+              }}
+              onClick={() => setActiveTab("links")}
+            >
+              Links
+            </button>
           </div>
 
           <div
             style={{
               ...styles.body,
-              // The mapper uses the full card; the two form tabs keep their
+              // The mapper uses the full card; the three form tabs keep their
               // original column width, centred inside it.
               ...(activeTab === "hotspots"
                 ? {}
@@ -960,8 +973,10 @@ export default function ApplicationMapPage() {
               </>
             ) : activeTab === "videos" ? (
               <VideosTab types={refData.types} />
-            ) : (
+            ) : activeTab === "hotspots" ? (
               <HotspotsTab />
+            ) : (
+              <ManufacturerLinksTab />
             )}
           </div>
         </div>

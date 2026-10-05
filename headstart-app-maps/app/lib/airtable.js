@@ -29,6 +29,16 @@ export const FIELDS = {
   MANUFACTURERS: {
     NAME: "fldm8DT9H7aFpY6rz",
     KEY_PRODUCTS: "fldR10c2IqF9MOYSJ",
+    // Added 5 Oct 2026 for the Manufacturer Links tab. Same field IDs the
+    // Engine already reads in headstart-engine/app/lib/airtable.js — this is
+    // the editor for data that was previously only writable by hand in
+    // Airtable. No Logo field: logos were considered and dropped (Damian,
+    // 5 Oct 2026) — manufacturer cards stay text-only, so there is nothing
+    // to upload here.
+    WEBSITE: "fld8lBAvPkoEkTN4G",
+    FEATURED_LINK_URL: "fld5DDTqBmviA9Ma3",
+    FEATURED_LINK_LABEL: "fld3rX57hSfZHy9H2",
+    PDF_URL: "fldCkmDWt1qzUw4EO",
   },
   APPLICATION_AREAS: {
     FULL_PATH: "fld71trL4N7jI30nj",
