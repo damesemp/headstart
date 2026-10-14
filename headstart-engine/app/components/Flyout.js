@@ -5,6 +5,12 @@ import { appForSegment, viewForApplicationModel } from "../lib/segmentAppMap";
 
 const EMBEDDED_PC = "Embedded PC";
 
+// A Type is only worth surfacing once it has enough hotspot-linked
+// Application Areas to be a meaningful entry point into the map. Below this,
+// it is greyed out (still listed, never clickable) the same way a Type with
+// no hotspot map at all is — see MIN_HOTSPOTS_FOR_ACTIVE_TYPE usage below.
+const MIN_HOTSPOTS_FOR_ACTIVE_TYPE = 4;
+
 function sortByName(a, b) {
   return String(a.name || a).localeCompare(String(b.name || b));
 }
@@ -121,6 +127,85 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
   );
   const selectedSegment = segmentName ? segmentByName[segmentName] : null;
   const selectedType = typeId ? typeById[typeId] : null;
+
+  // --- Hotspot-threshold visibility -----------------------------------
+  // Counts how many Application Areas reference each Type (via
+  // relevantTypeIds), then derives which Types, Segments and Industries are
+  // "live" enough to surface as clickable. These OR onto the pre-existing
+  // disable logic below — they never replace it.
+  const typeHotspotCounts = useMemo(() => {
+    const counts = {};
+    types.forEach((type) => {
+      counts[type.id] = applicationAreas.filter((area) => area.relevantTypeIds?.includes(type.id)).length;
+    });
+    return counts;
+  }, [types, applicationAreas]);
+
+  const isTypeBelowHotspotThreshold = (typeIdValue) =>
+    (typeHotspotCounts[typeIdValue] || 0) < MIN_HOTSPOTS_FOR_ACTIVE_TYPE;
+
+  const typesBySegment = useMemo(() => {
+    const map = {};
+    types.forEach((type) => {
+      if (!map[type.segment]) map[type.segment] = [];
+      map[type.segment].push(type);
+    });
+    return map;
+  }, [types]);
+
+  // Combined disabled state per Type: the pre-existing "no map and no video"
+  // condition OR'd with the new hotspot-count threshold (rule 1).
+  const typeDisabledById = useMemo(() => {
+    const map = {};
+    types.forEach((type) => {
+      const segment = segmentByName[type.segment];
+      const app = appForSegment(type.segment);
+      const hasMap = !!app && segment?.hasDiagram;
+      const video = videos.find(
+        (candidate) => !candidate.internalOnly && candidate.fileUrl && candidate.typeIds?.includes(type.id)
+      );
+      const existingDisabled = !hasMap && !video;
+      map[type.id] = existingDisabled || isTypeBelowHotspotThreshold(type.id);
+    });
+    return map;
+  }, [types, segmentByName, videos, typeHotspotCounts]);
+
+  // Segment disabled (rule 2): every one of its Types is disabled by rule 1.
+  // Segments with zero Types have nothing to count, so they are exempt and
+  // fall back to pre-existing logic only.
+  const segmentHotspotDisabled = useMemo(() => {
+    const map = {};
+    segments.forEach((segment) => {
+      const segTypes = typesBySegment[segment.name] || [];
+      map[segment.name] = segTypes.length > 0 && segTypes.every((type) => typeDisabledById[type.id]);
+    });
+    return map;
+  }, [segments, typesBySegment, typeDisabledById]);
+
+  // A Segment counts as "active" for Industry purposes (rule 3) if it has at
+  // least one non-disabled Type, or — for zero-Type segments, which are
+  // exempt from the hotspot rule — if it isn't disabled by the pre-existing
+  // segment-level condition.
+  const segmentActiveForIndustry = (segment) => {
+    const segTypes = typesBySegment[segment.name] || [];
+    if (segTypes.length === 0) {
+      const app = appForSegment(segment.name);
+      const existingDisabled = !segment.hasDiagram || !app;
+      return !existingDisabled;
+    }
+    return segTypes.some((type) => !typeDisabledById[type.id]);
+  };
+
+  // Industry disabled (rule 3): none of its Segments have an active Type.
+  const industryHasActiveSegment = useMemo(() => {
+    const map = {};
+    industries.forEach((name) => {
+      const segmentsForIndustry = segments.filter((segment) => segment.industry === name);
+      map[name] = segmentsForIndustry.some((segment) => segmentActiveForIndustry(segment));
+    });
+    return map;
+  }, [industries, segments, typesBySegment, typeDisabledById]);
+  // ---------------------------------------------------------------------
 
   const visibleSegments = useMemo(
     () => segments.filter((segment) => segment.industry === industry).sort(sortByName),
@@ -321,13 +406,15 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
     segments.forEach((segment) => {
       if ([segment.name, segment.industry].some((term) => String(term || "").toLowerCase().includes(q))) {
         const app = appForSegment(segment.name);
-        const disabled = !segment.hasDiagram || !app;
+        const existingDisabled = !segment.hasDiagram || !app;
+        const hotspotDisabled = segmentHotspotDisabled[segment.name];
+        const disabled = existingDisabled || hotspotDisabled;
         results.push({
           key: `segment-${segment.id}`,
           label: segment.name,
           path: `${segment.industry} › ${segment.name}`,
           disabled,
-          meta: disabled ? "No hotspot map yet" : null,
+          meta: disabled ? (existingDisabled ? "No hotspot map yet" : "Below hotspot threshold") : null,
           onClick: () => navigateToSegment(segment),
         });
       }
@@ -337,13 +424,15 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
       if (type.name.toLowerCase().includes(q)) {
         const segment = segmentByName[type.segment];
         const app = appForSegment(type.segment);
-        const disabled = !segment?.hasDiagram || !app || app.standalone;
+        const existingDisabled = !segment?.hasDiagram || !app || app.standalone;
+        const belowThreshold = isTypeBelowHotspotThreshold(type.id);
+        const disabled = existingDisabled || belowThreshold;
         results.push({
           key: `type-${type.id}`,
           label: type.name,
           path: `${segment?.industry || ""} › ${type.segment} › ${type.name}`,
           disabled,
-          meta: disabled ? "No hotspot map yet" : null,
+          meta: disabled ? (existingDisabled ? "No hotspot map yet" : "Below hotspot threshold") : null,
           onClick: () => navigateToType(type),
         });
       }
@@ -401,6 +490,8 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
     hotspots,
     applicationMapping,
     segmentByName,
+    segmentHotspotDisabled,
+    typeHotspotCounts,
   ]);
 
   const searching = query.trim().length > 0;
@@ -469,11 +560,20 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
                 {EMBEDDED_PC}
               </Row>
               <div className="hs-flyout-separator" />
-              {industries.map((name) => (
-                <Row key={name} active={mode === "industry" && industry === name} onClick={() => selectIndustry(name)}>
-                  {name}
-                </Row>
-              ))}
+              {industries.map((name) => {
+                const industryDisabled = !industryHasActiveSegment[name];
+                return (
+                  <Row
+                    key={name}
+                    active={mode === "industry" && industry === name}
+                    disabled={industryDisabled}
+                    meta={industryDisabled ? "No active applications yet" : null}
+                    onClick={() => selectIndustry(name)}
+                  >
+                    {name}
+                  </Row>
+                );
+              })}
             </Column>
 
             {mode === "embedded-pc" && (
@@ -514,13 +614,14 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
                   const app = appForSegment(segment.name);
                   const unavailable = !segment.hasDiagram || !app;
                   const hasTypes = types.some((type) => type.segment === segment.name);
-                  const disabled = unavailable && !hasTypes;
+                  const hotspotDisabled = segmentHotspotDisabled[segment.name];
+                  const disabled = (unavailable && !hasTypes) || hotspotDisabled;
                   return (
                     <Row
                       key={segment.id}
                       active={segmentName === segment.name}
                       disabled={disabled}
-                      meta={unavailable ? "No hotspot map yet" : null}
+                      meta={unavailable ? "No hotspot map yet" : hotspotDisabled ? "Below hotspot threshold" : null}
                       onClick={() => selectSegment(segment)}
                     >
                       {segment.name}
@@ -539,14 +640,17 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
                     (candidate) =>
                       !candidate.internalOnly && candidate.fileUrl && candidate.typeIds?.includes(type.id)
                   );
+                  const belowThreshold = isTypeBelowHotspotThreshold(type.id);
+                  const canOpenMap = hasMap && !belowThreshold;
+                  const disabled = (!hasMap && !video) || belowThreshold;
                   return (
                     <Row
                       key={type.id}
                       active={typeId === type.id}
-                      disabled={!hasMap && !video}
-                      showArrow={hasMap}
-                      className={!hasMap ? "hs-flyout-disabled" : ""}
-                      onClick={hasMap ? () => selectType(type) : undefined}
+                      disabled={disabled}
+                      showArrow={canOpenMap}
+                      className={disabled ? "hs-flyout-disabled" : ""}
+                      onClick={canOpenMap ? () => selectType(type) : undefined}
                       // Round 5. "Open map" was a full-width button on every Type
                       // row; almost every Type has a map, so it repeated down the
                       // whole column and stopped carrying meaning. It is now a
@@ -555,7 +659,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
                       // and it hangs off the Type it plays for rather than sitting
                       // at the foot of the column.
                       tag={
-                        hasMap ? (
+                        canOpenMap ? (
                           <button
                             type="button"
                             className="hs-flyout-maptag"
@@ -572,6 +676,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
                       meta={
                         <span className="hs-flyout-typemeta">
                           {!hasMap && <span>No hotspot map yet</span>}
+                          {hasMap && belowThreshold && <span>Below hotspot threshold</span>}
                           {video && (
                             <RowAction
                               className="hs-flyout-videopill"
