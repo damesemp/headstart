@@ -94,6 +94,18 @@ function typeShape(record) {
   };
 }
 
+// FIX (2026-10-15): retired Types are renamed "[MERGED -> X]" by the merge
+// procedure rather than deleted (keeps history / avoids breaking existing
+// links). They are never meant to be user-visible. The merge procedure is
+// also being updated to clear a retired record's Segment field going
+// forward, but this filter is defense-in-depth at the API boundary so a
+// `[MERGED` record can never reach the Engine UI even if its Segment is
+// (still, or again) populated — one fix point for every consumer of
+// `types` (Flyout's Type column, search results, hotspot-threshold counts).
+function isRetiredType(type) {
+  return type.name.startsWith("[MERGED");
+}
+
 function applicationAreaShape(record) {
   const f = record.fields;
   return {
@@ -212,7 +224,11 @@ export async function GET() {
     const videos = videoRecords.map(videoShape);
     const manufacturerApplicationIndex = buildManufacturerApplicationIndex(applicationMapping);
     const segments = segmentRecords.map(segmentShape);
-    const types = typeRecords.map(typeShape);
+    // FIX (2026-10-15): filter retired "[MERGED -> X]" Types out of the API
+    // payload here — the single point every consumer (Flyout.js's Type
+    // column, its search index, hotspot-threshold counts) reads `types`
+    // from. See isRetiredType above.
+    const types = typeRecords.map(typeShape).filter((type) => !isRetiredType(type));
     const applicationAreas = applicationAreaRecords.map(applicationAreaShape);
 
     return NextResponse.json({
