@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Flyout from "./Flyout";
 import SplashScreen from "./SplashScreen";
 import HotspotMap from "./HotspotMap";
 import EmbeddedPCMap from "./EmbeddedPCMap";
 import VideoModal from "./VideoModal";
+import { appsForSegmentMap } from "../lib/segmentAppMap";
 
 // Application images are no longer bundled as base64 in the source. Each
 // Type record carries its own "Application Image URL" (a permanent public
@@ -15,9 +16,12 @@ import VideoModal from "./VideoModal";
 
 const SPLASH_SESSION_KEY = "hs_splash_seen";
 
-// Application-map views this shell knows how to render, keyed the same way
-// as segmentAppMap.js's view keys. Embedded PC has no image/hotspots — it's
-// the standalone exception.
+// Hand-built fallback titles for the four legacy views — kept for the
+// ?app= URL restore effect below, which runs before live data has loaded.
+// Every other view key (any "auto-*" key from segmentAppMap.js's
+// buildAutoApps) is resolved once state.data is ready, via viewTitles below.
+// No new entry is needed here when a new Segment goes live — see
+// segmentAppMap.js.
 const APP_TITLES = {
   wearables: "Wearables",
   "military-drones": "Military Drones - Air",
@@ -25,7 +29,7 @@ const APP_TITLES = {
   "embedded-pc": "Embedded PC",
 };
 
-// Single-page shell for the four application maps. The reference-data fetch
+// Single-page shell for the application maps. The reference-data fetch
 // happens once here and is passed down, instead of every view fetching it
 // separately.
 export default function EngineShell() {
@@ -40,6 +44,18 @@ export default function EngineShell() {
   const [activeVideo, setActiveVideo] = useState(null);
   const [resetSignal, setResetSignal] = useState(0);
   const [splashDismissed, setSplashDismissed] = useState(true); // avoid a flash before the session check runs
+
+  // Every live application view (the four hand-built ones plus any Segment
+  // buildAutoApps() has auto-detected from live Types/Hotspots data), keyed
+  // by view -> Application Model string for HotspotMap. Recomputed whenever
+  // reference data refreshes, so a brand-new Segment's map appears here the
+  // moment its image + a Live hotspot exist in Airtable — no deploy needed.
+  const viewTitles = useMemo(() => {
+    if (!state.data) return APP_TITLES;
+    const apps = appsForSegmentMap(state.data);
+    const dynamic = Object.fromEntries(Object.values(apps).map((a) => [a.view, a.applicationModel]));
+    return { ...APP_TITLES, ...dynamic };
+  }, [state.data]);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +79,12 @@ export default function EngineShell() {
   // Splash shows once per browser session, then straight to last state on
   // return within that session. Also restores ?app=&hotspot= from the URL
   // so old-route redirects and shared links land on the right view.
+  // Accepts any non-empty app id, not just a known legacy key — an
+  // "auto-*" view for a newly-live Segment is only known once state.data
+  // has loaded (after this mount-time effect runs), and HotspotMap already
+  // degrades gracefully (its empty/"no application image" state) for a
+  // view it can't yet resolve, so there is nothing unsafe about accepting
+  // it optimistically here.
   useEffect(() => {
     const seen = sessionStorage.getItem(SPLASH_SESSION_KEY) === "1";
     setSplashDismissed(seen);
@@ -71,7 +93,7 @@ export default function EngineShell() {
     const app = params.get("app");
     const hotspot = params.get("hotspot");
     const variant = params.get("variant");
-    if (app && APP_TITLES[app]) {
+    if (app) {
       setView(app);
       if (hotspot) {
         setPendingHotspotId(hotspot);
@@ -196,7 +218,7 @@ export default function EngineShell() {
         ) : (
           <HotspotMap
             data={state.data}
-            applicationModel={APP_TITLES[view]}
+            applicationModel={viewTitles[view]}
             pendingHotspotId={pendingHotspotId}
             pendingVariant={pendingVariant}
             onConsumedPending={() => {

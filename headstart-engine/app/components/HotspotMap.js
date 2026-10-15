@@ -3,12 +3,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ZoomPanStage, { clampView } from "./ZoomPanStage";
 import CardsPanel from "./CardsPanel";
-import { SEGMENT_TO_APP } from "../lib/segmentAppMap";
+import { appsForSegmentMap } from "../lib/segmentAppMap";
 
-// Hotspot map — Wearables, Military Drones, Robotics & Automation. Reads
-// live Hotspots + Application Mapping + Manufacturers data, passed down
-// from EngineShell (single fetch shared across every view — see Section 2
-// of the nav rearchitecture spec) rather than fetched here directly.
+// Hotspot map — Wearables, Military Drones, Robotics & Automation, Embedded
+// PC, and any further Segment auto-detected by segmentAppMap.js's
+// buildAutoApps() once it has a real image + a Live hotspot. Reads live
+// Hotspots + Application Mapping + Manufacturers data, passed down from
+// EngineShell (single fetch shared across every view — see Section 2 of the
+// nav rearchitecture spec) rather than fetched here directly.
 //
 // Hotspot-to-application membership is resolved via Application Mapping's
 // own Hotspot link, not via Hotspots."Application Model" (see
@@ -110,9 +112,13 @@ export default function HotspotMap({
   );
 
   // Which Types (device variants) belong to this application model. Type
-  // Name and Hotspots' Device Variant are the same string.
+  // Name and Hotspots' Device Variant are the same string. The Segment is
+  // resolved against the combined hand-built + auto-detected app map (see
+  // segmentAppMap.js) so a brand-new Segment's map works the same way the
+  // four original ones do, with no code change required to register it.
   const variantsForApp = useMemo(() => {
-    const segment = Object.entries(SEGMENT_TO_APP).find(
+    const appsBySegment = appsForSegmentMap(data);
+    const segment = Object.entries(appsBySegment).find(
       ([, app]) => app.applicationModel === applicationModel,
     )?.[0];
     return (data.types || [])
