@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { appForSegment, viewForApplicationModel } from "../lib/segmentAppMap";
+import { appsForSegmentMap } from "../lib/segmentAppMap";
 
 const EMBEDDED_PC = "Embedded PC";
 
@@ -107,6 +107,17 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
   const applicationMapping = data?.applicationMapping || [];
   const videos = data?.videos || [];
 
+  // Combined Segment -> app map: the four hand-registered maps plus any
+  // Segment buildAutoApps() detects as ready from live data (image set +
+  // a Live hotspot). See segmentAppMap.js.
+  const appsBySegment = useMemo(() => appsForSegmentMap(data), [data]);
+  const appForSegment = (segmentName) => appsBySegment[segmentName] || null;
+  const viewForApplicationModel = (applicationModel) => {
+    if (!applicationModel) return null;
+    const match = Object.values(appsBySegment).find((a) => a.applicationModel === applicationModel);
+    return match?.view || null;
+  };
+
   const hotspotByRecordId = useMemo(
     () => Object.fromEntries(hotspots.map((hotspot) => [hotspot.id, hotspot])),
     [hotspots]
@@ -160,7 +171,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
     types.forEach((type) => {
       const segment = segmentByName[type.segment];
       const app = appForSegment(type.segment);
-      const hasMap = !!app && segment?.hasDiagram;
+      const hasMap = !!app && (segment?.hasDiagram || app.auto);
       const video = videos.find(
         (candidate) => !candidate.internalOnly && candidate.fileUrl && candidate.typeIds?.includes(type.id)
       );
@@ -190,7 +201,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
     const segTypes = typesBySegment[segment.name] || [];
     if (segTypes.length === 0) {
       const app = appForSegment(segment.name);
-      const existingDisabled = !segment.hasDiagram || !app;
+      const existingDisabled = !app || (!segment.hasDiagram && !app.auto);
       return !existingDisabled;
     }
     return segTypes.some((type) => !typeDisabledById[type.id]);
@@ -406,7 +417,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
     segments.forEach((segment) => {
       if ([segment.name, segment.industry].some((term) => String(term || "").toLowerCase().includes(q))) {
         const app = appForSegment(segment.name);
-        const existingDisabled = !segment.hasDiagram || !app;
+        const existingDisabled = !app || (!segment.hasDiagram && !app.auto);
         const hotspotDisabled = segmentHotspotDisabled[segment.name];
         const disabled = existingDisabled || hotspotDisabled;
         results.push({
@@ -424,7 +435,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
       if (type.name.toLowerCase().includes(q)) {
         const segment = segmentByName[type.segment];
         const app = appForSegment(type.segment);
-        const existingDisabled = !segment?.hasDiagram || !app || app.standalone;
+        const existingDisabled = !app || (!segment?.hasDiagram && !app.auto) || app.standalone;
         const belowThreshold = isTypeBelowHotspotThreshold(type.id);
         const disabled = existingDisabled || belowThreshold;
         results.push({
@@ -612,7 +623,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
               <Column title="Segment">
                 {visibleSegments.map((segment) => {
                   const app = appForSegment(segment.name);
-                  const unavailable = !segment.hasDiagram || !app;
+                  const unavailable = !app || (!segment.hasDiagram && !app.auto);
                   const hasTypes = types.some((type) => type.segment === segment.name);
                   const hotspotDisabled = segmentHotspotDisabled[segment.name];
                   const disabled = (unavailable && !hasTypes) || hotspotDisabled;
@@ -635,7 +646,7 @@ export default function Flyout({ open, onClose, data, onGo, onSelectManufacturer
               <Column title="Type">
                 {visibleTypes.map((type) => {
                   const app = appForSegment(segmentName);
-                  const hasMap = !!app && segmentByName[segmentName]?.hasDiagram;
+                  const hasMap = !!app && (segmentByName[segmentName]?.hasDiagram || app.auto);
                   const video = videos.find(
                     (candidate) =>
                       !candidate.internalOnly && candidate.fileUrl && candidate.typeIds?.includes(type.id)
