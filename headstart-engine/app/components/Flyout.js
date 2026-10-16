@@ -9,7 +9,7 @@ const EMBEDDED_PC = "Embedded PC";
 // Application Areas to be a meaningful entry point into the map. Below this,
 // it is greyed out (still listed, never clickable) the same way a Type with
 // no hotspot map at all is — see MIN_HOTSPOTS_FOR_ACTIVE_TYPE usage below.
-const MIN_HOTSPOTS_FOR_ACTIVE_TYPE = 4;
+const MIN_HOTSPOTS_FOR_ACTIVE_TYPE = 3;
 
 function sortByName(a, b) {
   return String(a.name || a).localeCompare(String(b.name || b));
