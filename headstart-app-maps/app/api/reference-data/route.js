@@ -53,11 +53,18 @@ export async function GET() {
       airtableList(AIRTABLE_BASE_ID, SEGMENTS_TABLE_ID, AIRTABLE_API_KEY)
     ]);
 
-    const types = typeRecords.map((r) => ({
-      id: r.id,
-      name: r.fields["Type Name"] || "(unnamed)",
-      segment: r.fields["Segment"] || null
-    }));
+    const types = typeRecords
+      .map((r) => ({
+        id: r.id,
+        name: r.fields["Type Name"] || "(unnamed)",
+        segment: r.fields["Segment"] || null
+      }))
+      // Leftover Types from a merge are kept in Airtable (never deleted) but
+      // renamed "[MERGED -> ...]" so nothing still points at them. They have
+      // no place in a picker someone is actively choosing from, so hide them
+      // here. This is read-only filtering — nothing is written back to
+      // Airtable, and the records themselves are untouched.
+      .filter((t) => !t.name.startsWith("[MERGED"));
 
     const applicationAreas = areaRecords.map((r) => ({
       id: r.id,

@@ -24,6 +24,12 @@ export async function GET(request) {
         };
       })
       .filter((t) => t.name)
+      // Leftover Types from a merge are kept in Airtable (never deleted) but
+      // renamed "[MERGED -> ...]" so nothing still points at them. They have
+      // no place in a picker someone is actively choosing from, so hide them
+      // here. This is read-only filtering — nothing is written back to
+      // Airtable, and the records themselves are untouched.
+      .filter((t) => !t.name.startsWith("[MERGED"))
       .sort((a, b) =>
         a.segment === b.segment ? a.name.localeCompare(b.name) : a.segment.localeCompare(b.segment)
       );
