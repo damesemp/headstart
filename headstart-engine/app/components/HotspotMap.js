@@ -103,13 +103,23 @@ export default function HotspotMap({
     return map;
   }, [data]);
 
-  const mappingRows = useMemo(
-    () =>
-      (data.applicationMapping || []).filter(
-        (r) => r.applicationModel === applicationModel,
-      ),
-    [data, applicationModel],
-  );
+  // FIX (30 Oct 2026, Damian — "no manufacturers mapped" bug): this used to
+  // pre-filter on `r.applicationModel === applicationModel` before the
+  // hotspotId filter below ever ran. Application Mapping's free-text
+  // "Application Model" field is not populated on every write path (it was
+  // blank on 255 of 1,043 Approved rows — every row written by the recent
+  // manufacturer-verification passes among them), so a fully correct,
+  // Approved, manufacturer-linked mapping was silently dropped here before
+  // rowsForSelected ever got to match it by hotspotId. 27 Live hotspots
+  // rendered "No manufacturers are mapped to this area yet" despite having
+  // a genuine Approved mapping in Airtable; 119 more silently lost some of
+  // their mapped manufacturers. hotspotId already uniquely scopes a mapping
+  // row to one hotspot (which already belongs to exactly one Type/Segment),
+  // so this extra gate was redundant by the file's own stated design (see
+  // the file-level comment above) and only ever filtered correct rows out.
+  // No replacement filter is needed — rowsForSelected's hotspotId match is
+  // sufficient on its own.
+  const mappingRows = useMemo(() => data.applicationMapping || [], [data]);
 
   // Which Types (device variants) belong to this application model. Type
   // Name and Hotspots' Device Variant are the same string. The Segment is
