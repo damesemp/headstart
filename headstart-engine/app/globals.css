@@ -1733,6 +1733,65 @@ body {
   flex-shrink: 0;
 }
 
+/* ==========================================================================
+   ROUND 7 (31 Oct 2026) — colour/typography/list-display pass to match the
+   rev05 reference file exactly (Headstart-Expandable-Details-rev05). Same
+   sections as Round 6 (Key Products / Follow-Up Questions / Industries /
+   Documents) — this block only changes how they look:
+   - the manufacturer profile (franchise name through the website link) is
+     ONE continuous white card with thin internal dividers, not a stack of
+     separate white tiles with grey gaps between them.
+   - "Why This Manufacturer May Fit" gets the cream callout box with the
+     orange left rule (rev05's ".fit").
+   - Key Products becomes a plain vertical list, one product per line, no
+     chip background (rev05's ".products").
+   - Industries becomes a plain comma-separated line (rev05's Industries
+     markup), not chips.
+   - outbound link arrows (Documents + Website/Featured Link) are orange.
+   ========================================================================== */
+.hs-card-profile {
+  background: var(--hs-tile);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+.hs-card-profile .hs-card-section {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hs-rule);
+}
+.hs-card-profile .hs-card-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.hs-card-profile .hs-card-section.hs-card-fitbox {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-top: none;
+  border-left: 3px solid var(--astute-orange);
+  background: #f5f4f1;
+}
+
+/* Key Products — plain vertical list, not chips. */
+.hs-card-plainlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: var(--hs-ink-2);
+}
+.hs-card-plainlist li {
+  padding: 6px 0;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.hs-linkrow-glyph {
+  color: var(--astute-orange);
+}
 
 /* ==========================================================================
    ROUND 5 — CORRECTIONS (28 August)

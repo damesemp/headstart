@@ -24,6 +24,10 @@ function Section({ heading, children, value, className = "", count = null }) {
 
 // Airtable joins these formula fields with a "<<>>" token. They were being
 // printed raw. Round 5 renders them as tags, which is what the field is for.
+// Round 7 (31 Oct 2026, Damian — rev05 colour/typography pass) stopped using
+// this for Key Products/Industries (see PlainList/JoinedList below, matching
+// the rev05 reference's ".products"/plain-Industries-line exactly) — kept
+// here in case another part of the app still wants the chip treatment.
 function Tags({ value }) {
   const items = String(value || "")
     .split("<<>>")
@@ -37,6 +41,35 @@ function Tags({ value }) {
       ))}
     </ul>
   );
+}
+
+// Round 7 — Key Products: a plain vertical list, one product per line, no
+// chip background (rev05 reference's ".products li"). Same "<<>>" split as
+// Tags above.
+function PlainList({ value }) {
+  const items = String(value || "")
+    .split("<<>>")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (!items.length) return null;
+  return (
+    <ul className="hs-card-plainlist">
+      {items.map((item, index) => (
+        <li key={`${index}-${item}`}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+// Round 7 — Industries: a single comma-separated line (rev05 reference
+// markup: <p>Automotive, Defence, Industrial, Medical, Rail</p>), not chips.
+function JoinedList({ value }) {
+  const items = String(value || "")
+    .split("<<>>")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (!items.length) return null;
+  return <p className="hs-card-copy">{items.join(", ")}</p>;
 }
 
 // 1 Sep 2026 — every one of the 157 Core Advantages records follows this
@@ -145,7 +178,7 @@ function Documents({ manufacturer }) {
   if (!docs.length) return null;
   return (
     <details className="hs-card-disclosure">
-      <summary className="hs-card-heading">Documents</summary>
+      <summary className="hs-card-heading">More Information</summary>
       <div className="hs-card-disclosure-body hs-card-doclist">
         {docs.map((doc, index) => (
           <div className="hs-card-docbox" key={`${index}-${doc.url}`}>
@@ -377,109 +410,128 @@ export default function CardsPanel({
                   Questions/Documents always re-close — native <details> is
                   uncontrolled, so a fresh mount is what resets it. */}
               <div className="hs-card-col hs-card-span" key={manufacturer.id}>
-                {/* FIX (5 Oct 2026, Damian): franchise name, headline and
-                    short description used to be three separate
-                    hs-card-section blocks, each with its own section
-                    spacing — so a single franchise's own text read as three
-                    stacked cards instead of one. Same fonts/weights/markup
-                    as before (hs-card-title, hs-card-category,
-                    hs-card-headline-row/-text, hs-card-copy), just nested
-                    inside one section so it reads as a single block: name,
-                    headline, description. */}
-                <Section
-                  heading="Astute Franchise"
-                  value={manufacturer.name}
-                  className="hs-card-franchise"
-                >
-                  <div className="hs-card-title">{manufacturer.name}</div>
-                  {categoryLine && (
-                    <div className="hs-card-category">{categoryLine}</div>
-                  )}
-                  {hasValue(manufacturer.headline) && (
-                    <div className="hs-card-headline-row">
-                      {manufacturer.logoUrl && (
-                        <div className="hs-card-headline-logo">
-                          <img src={manufacturer.logoUrl} alt={`${manufacturer.name} logo`} />
-                        </div>
-                      )}
-                      <div className="hs-card-headline-text">{manufacturer.headline}</div>
-                    </div>
-                  )}
-                  {hasValue(details) && (
-                    <div className="hs-card-copy">
-                      {details.map((paragraph, index) => (
-                        <p key={`${index}-${paragraph}`}>{paragraph}</p>
-                      ))}
-                    </div>
-                  )}
-                </Section>
-
-                {/* Round 6 (31 Oct 2026, Damian): "Why This Manufacturer
-                    Fits" -> "Why This Manufacturer May Fit" — softer,
-                    non-definitive phrasing. No data change, heading only. */}
-                <Section
-                  heading="Why This Manufacturer May Fit"
-                  value={whyThisManufacturerFits}
-                >
-                  <WhyThisFits value={whyThisManufacturerFits} />
-                </Section>
-
-                {/* Round 6 — Key Products and Industries are now native
-                    <details> disclosures sharing one `name` group, so
-                    opening either one closes the other (rev05 reference
-                    behaviour). Key Products starts open; Industries starts
-                    closed. Product Lifecycle is removed from the card per
-                    Damian's instruction — left untouched in Airtable/the
-                    data model (manufacturer.productLifecycle), just not
-                    read here, same convention as Quality & Certifications
-                    below. */}
-                {hasValue(manufacturer.keyProducts) && (
-                  <details
-                    className="hs-card-disclosure"
-                    name={`mfg-${manufacturer.id}`}
-                    open
+                {/* Round 7 (31 Oct 2026, Damian — rev05 colour pass): the
+                    whole manufacturer profile (name through the website
+                    link) is now ONE continuous white card with thin
+                    dividers between its parts, matching the rev05
+                    reference's single ".profile" box — not a stack of
+                    separate white tiles with grey gaps. See
+                    .hs-card-profile / .hs-card-profile .hs-card-section in
+                    globals.css. Sections/content inside are unchanged from
+                    Round 6, styling only. */}
+                <div className="hs-card-profile">
+                  {/* FIX (5 Oct 2026, Damian): franchise name, headline and
+                      short description used to be three separate
+                      hs-card-section blocks, each with its own section
+                      spacing — so a single franchise's own text read as
+                      three stacked cards instead of one. Same
+                      fonts/weights/markup as before (hs-card-title,
+                      hs-card-category, hs-card-headline-row/-text,
+                      hs-card-copy), just nested inside one section so it
+                      reads as a single block: name, headline, description. */}
+                  <Section
+                    heading="Astute Franchise"
+                    value={manufacturer.name}
+                    className="hs-card-franchise"
                   >
-                    <summary className="hs-card-heading">
-                      Key Products
-                    </summary>
-                    <div className="hs-card-disclosure-body">
-                      <Tags value={manufacturer.keyProducts} />
-                    </div>
-                  </details>
-                )}
+                    <div className="hs-card-title">{manufacturer.name}</div>
+                    {categoryLine && (
+                      <div className="hs-card-category">{categoryLine}</div>
+                    )}
+                    {hasValue(manufacturer.headline) && (
+                      <div className="hs-card-headline-row">
+                        {manufacturer.logoUrl && (
+                          <div className="hs-card-headline-logo">
+                            <img src={manufacturer.logoUrl} alt={`${manufacturer.name} logo`} />
+                          </div>
+                        )}
+                        <div className="hs-card-headline-text">{manufacturer.headline}</div>
+                      </div>
+                    )}
+                    {hasValue(details) && (
+                      <div className="hs-card-copy">
+                        {details.map((paragraph, index) => (
+                          <p key={`${index}-${paragraph}`}>{paragraph}</p>
+                        ))}
+                      </div>
+                    )}
+                  </Section>
 
-                {/* Round 6 — Follow-Up Questions (was "Ask & Act"), moved
-                    above Industries per Damian's instruction. Only Next
-                    Steps (ex-Next Actions) renders; Questions To Ask Now
-                    is dropped. */}
-                <FollowUpQuestions nextActions={nextActions} />
-
-                {hasValue(manufacturer.industries) && (
-                  <details
-                    className="hs-card-disclosure"
-                    name={`mfg-${manufacturer.id}`}
+                  {/* Round 6 (31 Oct 2026, Damian): "Why This Manufacturer
+                      Fits" -> "Why This Manufacturer May Fit" — softer,
+                      non-definitive phrasing. No data change, heading only.
+                      Round 7: rendered as the cream callout box with the
+                      orange left rule (rev05's ".fit"), via
+                      hs-card-fitbox. */}
+                  <Section
+                    heading="Why This Manufacturer May Fit"
+                    value={whyThisManufacturerFits}
+                    className="hs-card-fitbox"
                   >
-                    <summary className="hs-card-heading">
-                      Industries
-                    </summary>
-                    <div className="hs-card-disclosure-body">
-                      <Tags value={manufacturer.industries} />
-                    </div>
-                  </details>
-                )}
+                    <WhyThisFits value={whyThisManufacturerFits} />
+                  </Section>
 
-                {/* REMOVED (5 Oct 2026, Damian): Quality & Certifications
-                    section dropped from the card entirely — not required
-                    for the overview information. manufacturer.
-                    qualityCertifications is left in the data model/Airtable,
-                    just not read here. */}
+                  {/* Round 6 — Key Products and Industries are native
+                      <details> disclosures sharing one `name` group, so
+                      opening either one closes the other (rev05 reference
+                      behaviour). Key Products starts open; Industries
+                      starts closed. Product Lifecycle is removed from the
+                      card per Damian's instruction — left untouched in
+                      Airtable/the data model (manufacturer.productLifecycle),
+                      just not read here, same convention as Quality &
+                      Certifications below. Round 7: Key Products renders as
+                      a plain vertical list (PlainList), not chips. */}
+                  {hasValue(manufacturer.keyProducts) && (
+                    <details
+                      className="hs-card-disclosure"
+                      name={`mfg-${manufacturer.id}`}
+                      open
+                    >
+                      <summary className="hs-card-heading">
+                        Key Products
+                      </summary>
+                      <div className="hs-card-disclosure-body">
+                        <PlainList value={manufacturer.keyProducts} />
+                      </div>
+                    </details>
+                  )}
 
-                {/* Round 6 — Documents, own disclosure, supports multiple
-                    PDFs (see Documents component above). Replaces the old
-                    single "Line card" download row in ManufacturerLinks. */}
-                <Documents manufacturer={manufacturer} />
+                  {/* Round 6 — Follow-Up Questions (was "Ask & Act"), moved
+                      above Industries per Damian's instruction. Only Next
+                      Steps (ex-Next Actions) renders; Questions To Ask Now
+                      is dropped. */}
+                  <FollowUpQuestions nextActions={nextActions} />
 
-                <ManufacturerLinks manufacturer={manufacturer} />
+                  {/* Round 7: Industries renders as a single comma-separated
+                      line (JoinedList), not chips, matching the rev05
+                      reference markup exactly. */}
+                  {hasValue(manufacturer.industries) && (
+                    <details
+                      className="hs-card-disclosure"
+                      name={`mfg-${manufacturer.id}`}
+                    >
+                      <summary className="hs-card-heading">
+                        Industries
+                      </summary>
+                      <div className="hs-card-disclosure-body">
+                        <JoinedList value={manufacturer.industries} />
+                      </div>
+                    </details>
+                  )}
+
+                  {/* REMOVED (5 Oct 2026, Damian): Quality & Certifications
+                      section dropped from the card entirely — not required
+                      for the overview information. manufacturer.
+                      qualityCertifications is left in the data model/Airtable,
+                      just not read here. */}
+
+                  {/* Round 6 — Documents, own disclosure, supports multiple
+                      PDFs (see Documents component above). Replaces the old
+                      single "Line card" download row in ManufacturerLinks. */}
+                  <Documents manufacturer={manufacturer} />
+
+                  <ManufacturerLinks manufacturer={manufacturer} />
+                </div>
               </div>
             </>
           )}
