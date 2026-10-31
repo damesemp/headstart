@@ -32,6 +32,11 @@ function manufacturerShape(record) {
     featuredLinkUrl: f[FIELDS.MANUFACTURERS.FEATURED_LINK_URL] || null,
     featuredLinkLabel: f[FIELDS.MANUFACTURERS.FEATURED_LINK_LABEL] || "",
     pdfUrl: f[FIELDS.MANUFACTURERS.PDF_URL] || null,
+    // Added 31 Oct 2026 (Damian, rev05 right-panel redesign) — multiple
+    // documents for the Documents disclosure. Raw "Label | url" lines,
+    // parsed in CardsPanel.js's Documents component, which falls back to
+    // pdfUrl above when this is empty (true for all 157 records today).
+    documentsRaw: f[FIELDS.MANUFACTURERS.DOCUMENTS] || "",
     // Step 4 — right-hand panel "Why this manufacturer fits" fallback
     // when a given hotspot mapping row has no per-hotspot text of its own.
     coreAdvantages: f[FIELDS.MANUFACTURERS.CORE_ADVANTAGES] || "",
@@ -43,6 +48,9 @@ function manufacturerShape(record) {
     // now since the field is empty on every record; before real logos are
     // uploaded here, this needs the same Blob-URL treatment as the PDF
     // field, or logos will silently stop loading a few hours after upload.
+    // NOTE (31 Oct 2026): still exposed here; CardsPanel.js no longer
+    // renders it (Damian, rev05 redesign — Product Lifecycle dropped from
+    // the card).
     productLifecycle: f[FIELDS.MANUFACTURERS.PRODUCT_LIFECYCLE] || "",
     logoUrl: (f[FIELDS.MANUFACTURERS.LOGO] || [])[0]?.url || null,
   };
@@ -134,7 +142,9 @@ function mappingShape(record, hotspotById) {
     relevantAstuteLine: f[FIELDS.APPLICATION_MAPPING.RELEVANT_ASTUTE_LINE] || [],
     fitType: f[FIELDS.APPLICATION_MAPPING.FIT_TYPE] || null,
     whyThisLineFits: f[FIELDS.APPLICATION_MAPPING.WHY_THIS_LINE_FITS] || "",
-    // Step 4 — right-hand panel "Ask & Act" card.
+    // Step 4 — right-hand panel "Ask & Act" card. Questions is still
+    // fetched (unchanged at the API level) even though CardsPanel.js
+    // stopped rendering it on 31 Oct 2026 — see FollowUpQuestions there.
     questions: f[FIELDS.APPLICATION_MAPPING.QUESTIONS] || "",
     nextActions: f[FIELDS.APPLICATION_MAPPING.NEXT_ACTIONS] || "",
     reviewStatus: f[FIELDS.APPLICATION_MAPPING.REVIEW_STATUS] || null,

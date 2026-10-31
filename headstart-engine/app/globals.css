@@ -1642,6 +1642,97 @@ body {
   color: #3c3d3e;
 }
 
+/* ==========================================================================
+   ROUND 6 (31 Oct 2026) — right-panel rev05 redesign: native <details>
+   disclosures (Key Products / Follow-Up Questions / Industries / Documents)
+   and the Documents list. .hs-card-heading already carries the right
+   font-size at every breakpoint (see the "type up 20%" and small-screen
+   blocks above) — reused on <summary> rather than duplicated here, so this
+   block is layout/interaction only.
+   ========================================================================== */
+.hs-card-disclosure {
+  border-top: 1px solid var(--hs-rule);
+  margin-top: 12px;
+}
+.hs-card-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 11px 0;
+  cursor: pointer;
+}
+.hs-card-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+.hs-card-disclosure summary::after {
+  content: "+";
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--hs-ink-3);
+}
+.hs-card-disclosure[open] summary::after {
+  content: "\2212";
+}
+.hs-card-disclosure-body {
+  padding: 0 0 10px;
+}
+
+.hs-card-doclist {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.hs-card-docbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 11px;
+  background: var(--hs-field);
+  border: 1px solid var(--hs-rule);
+}
+.hs-card-docicon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--hs-rule);
+  border-top: 3px solid var(--astute-orange);
+  background: var(--hs-tile);
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--hs-ink-2);
+}
+.hs-card-doccopy {
+  flex: 1;
+  min-width: 0;
+}
+.hs-card-doccopy a {
+  color: var(--hs-ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.hs-card-doccopy a:hover {
+  text-decoration: underline;
+}
+.hs-card-docmeta {
+  margin-top: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--hs-ink-3);
+}
+.hs-card-docarrow {
+  color: var(--astute-orange);
+  flex-shrink: 0;
+}
+
 
 /* ==========================================================================
    ROUND 5 — CORRECTIONS (28 August)
