@@ -4,6 +4,13 @@
 // a list of three destinations. A stacked, hairline-separated list instead,
 // with a glyph on the left saying what will happen: arrow out for a new tab,
 // arrow down for a download. See HEADSTART_BUILD_INSTRUCTIONS_5.md 7.4.
+//
+// Round 6 (31 Oct 2026, Damian — rev05 redesign): the single PDF "Line card"
+// download row is removed from this list. It duplicated the new Documents
+// disclosure in CardsPanel.js, which now reads the same pdfUrl (plus any
+// additional entries in Manufacturers.Documents) and can show more than one
+// document. manufacturer.pdfUrl is read there, not here, to avoid rendering
+// the same link twice.
 export default function ManufacturerLinks({ manufacturer }) {
   const links = [];
 
@@ -23,14 +30,6 @@ export default function ManufacturerLinks({ manufacturer }) {
       text: manufacturer.featuredLinkLabel || "Featured link",
       meta: "Astute",
       kind: "out",
-    });
-  }
-  if (manufacturer.pdfUrl) {
-    links.push({
-      href: manufacturer.pdfUrl,
-      text: "Line card",
-      meta: "PDF",
-      kind: "down",
     });
   }
 

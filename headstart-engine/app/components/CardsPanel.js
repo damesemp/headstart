@@ -80,6 +80,102 @@ function NumberedLines({ value }) {
   );
 }
 
+// Round 6 (31 Oct 2026, Damian — right-side panel rev05 redesign) — Next
+// Steps is a disclosure, closed by default, named "Follow-Up Questions" on
+// the summary. The "Questions To Ask Now" half of the old "Ask & Act" card
+// is dropped per Damian's explicit instruction ("remove questions to ask
+// from Follow-Up Questions box"); only the Next Actions data renders here
+// now (relabelled "Next Steps" on the summary body, not the field itself —
+// mappingRow.nextActions / selection.sharedNextActions is unchanged).
+function FollowUpQuestions({ nextActions }) {
+  if (!hasValue(nextActions)) return null;
+  return (
+    <details className="hs-card-disclosure">
+      <summary className="hs-card-heading">
+        Follow-Up Questions
+      </summary>
+      <div className="hs-card-disclosure-body">
+        <h3 className="hs-card-heading" style={{ marginTop: 0 }}>
+          Next Steps
+        </h3>
+        <NumberedLines value={nextActions} />
+      </div>
+    </details>
+  );
+}
+
+// Round 6 — Documents section, replacing the old single "Line card" PDF
+// download row in ManufacturerLinks. Airtable: Manufacturers.Documents
+// (fldxR3dVZqGKlBzyU, multilineText) — one document per line, formatted
+// "Label | https://permanent-url". Empty today on every record; falls back
+// to the existing single PDF_URL field (populated with the placeholder
+// https://www.astutegroup.com on all 157 records, 31 Oct 2026) so the
+// section renders meaningfully before Damian uploads real PDFs and
+// replaces the Documents field per manufacturer. Permanent URLs only
+// (Vercel Blob), same rule as PDF_URL/Featured Link — never a raw Airtable
+// attachment URL, which expires after a few hours (see LOGO field note in
+// api/reference-data/route.js).
+function parseDocuments(documentsRaw, fallbackLabel, fallbackUrl) {
+  const lines = String(documentsRaw || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const docs = lines
+    .map((line) => {
+      if (line.includes("|")) {
+        const [label, url] = line.split("|").map((part) => part.trim());
+        return { label: label || `${fallbackLabel} overview`, url };
+      }
+      return { label: `${fallbackLabel} overview`, url: line };
+    })
+    .filter((doc) => hasValue(doc.url));
+  if (docs.length) return docs;
+  if (hasValue(fallbackUrl)) {
+    return [{ label: `${fallbackLabel} overview`, url: fallbackUrl }];
+  }
+  return [];
+}
+
+function Documents({ manufacturer }) {
+  const docs = parseDocuments(
+    manufacturer.documentsRaw,
+    manufacturer.name,
+    manufacturer.pdfUrl,
+  );
+  if (!docs.length) return null;
+  return (
+    <details className="hs-card-disclosure">
+      <summary className="hs-card-heading">Documents</summary>
+      <div className="hs-card-disclosure-body hs-card-doclist">
+        {docs.map((doc, index) => (
+          <div className="hs-card-docbox" key={`${index}-${doc.url}`}>
+            <div className="hs-card-docicon" aria-hidden="true">
+              PDF
+            </div>
+            <div className="hs-card-doccopy">
+              <a
+                href={doc.url}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {doc.label}
+              </a>
+              <div className="hs-card-docmeta">
+                {doc.url === "https://www.astutegroup.com"
+                  ? "PDF · placeholder — update in Airtable"
+                  : "PDF"}
+              </div>
+            </div>
+            <span className="hs-card-docarrow" aria-hidden="true">
+              &#8599;
+            </span>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 export default function CardsPanel({
   selection,
   onResetSelection,
@@ -138,23 +234,17 @@ export default function CardsPanel({
     null;
   const manufacturer = activeEntry?.manufacturer || null;
   const mappingRow = activeEntry?.row || null;
-  // Embedded PC has no subcategory records/fields in Airtable. These are the
-  // documented template-only exception until a Subcategories table exists.
-  const subcategoryQuestions =
-    selection?.kind === "subcategory"
-      ? `Which manufacturer within ${selection.subcategory} is being considered?\nIs this requirement driven by performance, availability, lifecycle or cost?`
-      : "";
+  // REMOVED (31 Oct 2026, Damian — rev05 redesign): the "Questions To Ask
+  // Now" half of Ask & Act is dropped from the panel entirely. The
+  // subcategoryQuestions synthesis and mappingRow.questions /
+  // selection.sharedQuestions read are gone with it — Questions is left
+  // untouched in Airtable/the data model, just not rendered.
   // REMOVED (5 Oct 2026, Damian): this used to synthesise a fixed "Select a
   // specific franchise..." Next Actions line for every subcategory
   // selection. Dropped outright rather than reworded — Next Actions still
   // renders normally from real data (mappingRow.nextActions /
   // selection.sharedNextActions) wherever that exists.
   const subcategoryNextActions = "";
-  const questions =
-    mappingRow?.questions ||
-    subcategoryQuestions ||
-    selection?.sharedQuestions ||
-    "";
   const nextActions =
     mappingRow?.nextActions ||
     subcategoryNextActions ||
@@ -279,7 +369,14 @@ export default function CardsPanel({
             <>
               <div className="hs-card-group-label hs-card-span">Target</div>
 
-              <div className="hs-card-col hs-card-col-left">
+              {/* Round 6 (31 Oct 2026, Damian — rev05 redesign): single
+                  continuous column, not the old col-left/col-right split.
+                  `key={manufacturer.id}` remounts the disclosures below on
+                  every manufacturer/selection change, so Key Products
+                  always re-opens and Industries/Follow-Up
+                  Questions/Documents always re-close — native <details> is
+                  uncontrolled, so a fresh mount is what resets it. */}
+              <div className="hs-card-col hs-card-span" key={manufacturer.id}>
                 {/* FIX (5 Oct 2026, Damian): franchise name, headline and
                     short description used to be three separate
                     hs-card-section blocks, each with its own section
@@ -317,57 +414,72 @@ export default function CardsPanel({
                   )}
                 </Section>
 
+                {/* Round 6 (31 Oct 2026, Damian): "Why This Manufacturer
+                    Fits" -> "Why This Manufacturer May Fit" — softer,
+                    non-definitive phrasing. No data change, heading only. */}
                 <Section
-                  heading="Why This Manufacturer Fits"
+                  heading="Why This Manufacturer May Fit"
                   value={whyThisManufacturerFits}
                 >
                   <WhyThisFits value={whyThisManufacturerFits} />
                 </Section>
-                <ManufacturerLinks manufacturer={manufacturer} />
-              </div>
 
-              <div className="hs-card-col hs-card-col-right">
-                <Section
-                  heading="Key Products"
-                  value={manufacturer.keyProducts}
-                >
-                  <Tags value={manufacturer.keyProducts} />
-                </Section>
-                {/* 1 Sep 2026 — Industries added back for internal sales:
-                    seeing a manufacturer's other industries is a cross-sell
-                    signal ("attach one franchise to another"). Product
-                    Lifecycle added for the same audience — Astute's own
-                    lifecycle/obsolescence pitch, in the manufacturer's own
-                    words. Applications was considered and deliberately left
-                    out: it reads as a second, competing sense of
-                    "application" against the engine's own Application
-                    Mapping / Application Areas. */}
-                <Section
-                  heading="Industries"
-                  value={manufacturer.industries}
-                >
-                  <Tags value={manufacturer.industries} />
-                </Section>
-                <Section
-                  heading="Product Lifecycle"
-                  value={manufacturer.productLifecycle}
-                >
-                  <Tags value={manufacturer.productLifecycle} />
-                </Section>
+                {/* Round 6 — Key Products and Industries are now native
+                    <details> disclosures sharing one `name` group, so
+                    opening either one closes the other (rev05 reference
+                    behaviour). Key Products starts open; Industries starts
+                    closed. Product Lifecycle is removed from the card per
+                    Damian's instruction — left untouched in Airtable/the
+                    data model (manufacturer.productLifecycle), just not
+                    read here, same convention as Quality & Certifications
+                    below. */}
+                {hasValue(manufacturer.keyProducts) && (
+                  <details
+                    className="hs-card-disclosure"
+                    name={`mfg-${manufacturer.id}`}
+                    open
+                  >
+                    <summary className="hs-card-heading">
+                      Key Products
+                    </summary>
+                    <div className="hs-card-disclosure-body">
+                      <Tags value={manufacturer.keyProducts} />
+                    </div>
+                  </details>
+                )}
+
+                {/* Round 6 — Follow-Up Questions (was "Ask & Act"), moved
+                    above Industries per Damian's instruction. Only Next
+                    Steps (ex-Next Actions) renders; Questions To Ask Now
+                    is dropped. */}
+                <FollowUpQuestions nextActions={nextActions} />
+
+                {hasValue(manufacturer.industries) && (
+                  <details
+                    className="hs-card-disclosure"
+                    name={`mfg-${manufacturer.id}`}
+                  >
+                    <summary className="hs-card-heading">
+                      Industries
+                    </summary>
+                    <div className="hs-card-disclosure-body">
+                      <Tags value={manufacturer.industries} />
+                    </div>
+                  </details>
+                )}
+
                 {/* REMOVED (5 Oct 2026, Damian): Quality & Certifications
                     section dropped from the card entirely — not required
                     for the overview information. manufacturer.
                     qualityCertifications is left in the data model/Airtable,
                     just not read here. */}
-                {(hasValue(questions) || hasValue(nextActions)) && (
-                  <div className="hs-card-group-label">Ask &amp; Act</div>
-                )}
-                <Section heading="Questions To Ask Now" value={questions}>
-                  <NumberedLines value={questions} />
-                </Section>
-                <Section heading="Next Actions" value={nextActions}>
-                  <NumberedLines value={nextActions} />
-                </Section>
+
+                {/* Round 6 — Documents, own disclosure, supports multiple
+                    PDFs (see Documents component above). Replaces the old
+                    single "Line card" download row in ManufacturerLinks. */}
+                <Documents manufacturer={manufacturer} />
+
+                <ManufacturerLinks manufacturer={manufacturer} />
               </div>
             </>
           )}

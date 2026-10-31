@@ -42,6 +42,13 @@ export const FIELDS = {
     FEATURED_LINK_URL: "fld5DDTqBmviA9Ma3",
     FEATURED_LINK_LABEL: "fld3rX57hSfZHy9H2",
     PDF_URL: "fldCkmDWt1qzUw4EO",
+    // Added 31 Oct 2026 (Damian, rev05 right-panel redesign) — multiple
+    // documents for the panel's Documents disclosure. multilineText, one
+    // doc per line: "Label | https://permanent-url". Empty on all 157
+    // records today; CardsPanel.js falls back to PDF_URL (above) until
+    // this is populated per manufacturer. Same permanent-URL rule as
+    // PDF_URL/FEATURED_LINK_URL — never a raw Airtable attachment link.
+    DOCUMENTS: "fldxR3dVZqGKlBzyU",
     // Added for Step 4's right-hand panel ("Manufacturer Details" card) —
     // confirmed via live schema check 18 August 2026.
     CORE_ADVANTAGES: "fldW2pEdBboSh8ehd",
@@ -51,6 +58,9 @@ export const FIELDS = {
     // (Export) is the same "<<>>"-joined-formula pattern as Key Products
     // and Industries. Manufacturer Logo is an attachment field — empty on
     // all 157 records today; card falls back to no image when empty.
+    // NOTE (31 Oct 2026): Product Lifecycle is no longer rendered on the
+    // card (Damian, rev05 redesign) — field/value untouched here, the API
+    // still exposes it, CardsPanel.js just doesn't read it any more.
     PRODUCT_LIFECYCLE: "fldzGsbLLDNSGMLOI",
     LOGO: "fldhMWe2KE7WeWjrP",
   },
@@ -62,7 +72,9 @@ export const FIELDS = {
     FIT_TYPE: "fldmXCMWm4nh444PV",
     WHY_THIS_LINE_FITS: "fldy4EZToLrk8Uae8",
     // Added for Step 4's right-hand panel ("Ask & Act" card) — confirmed
-    // via live schema check 18 August 2026.
+    // via live schema check 18 August 2026. Questions is still fetched
+    // (API-level data, untouched) even though the panel stopped rendering
+    // it on 31 Oct 2026 — see CardsPanel.js's FollowUpQuestions component.
     QUESTIONS: "flde6zNaSrTsC9Jjy",
     NEXT_ACTIONS: "fldyiI1IcF3UqOHaT",
     SHOW_IN_MODEL: "fldXiU3cY2dMm2kBO",
