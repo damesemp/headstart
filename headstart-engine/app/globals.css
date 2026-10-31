@@ -1838,6 +1838,47 @@ body {
 }
 
 /* ==========================================================================
+   ROUND 9 (31 Oct 2026, Damian) — manufacturer name/headline/description
+   block still read as cramped after Round 8, because Round 8 only fixed
+   Key Products/document sizing, not this block. Root cause, confirmed by
+   computed style on the live site: `.hs-card-franchise .hs-card-title`
+   (two classes, line 1416) beats the general `.hs-card-title` 21.5px rule
+   (one class, line 2467) on specificity alone regardless of file order —
+   so the manufacturer's own NAME was rendering at 15px, identical to its
+   description text below it, with near-zero margin between name / category
+   / headline / description. Confirmed live (Intelligent Memory): title
+   15px/17.4px line-height, category 10.5px, headline 15px, copy 15px — no
+   size hierarchy at all between the card's headline and its body text.
+   This restores a real hierarchy (name > headline > body > category
+   caption) and adds breathing room between each line, using three-class
+   selectors so they win on specificity without !important. Key
+   Products/Industries/Documents sizing from Round 8 is untouched.
+   ========================================================================== */
+.hs-hsmap-panel .hs-card-franchise .hs-card-title {
+  font-size: 22px;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+.hs-hsmap-panel .hs-card-category {
+  font-size: 13px;
+  line-height: 1.4;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+.hs-hsmap-panel .hs-card-headline-row {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+.hs-hsmap-panel .hs-card-headline-text {
+  font-size: 16.5px;
+  line-height: 1.4;
+}
+.hs-hsmap-panel .hs-card-profile .hs-card-copy {
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* ==========================================================================
    ROUND 5 — CORRECTIONS (28 August)
    ========================================================================== */
 
