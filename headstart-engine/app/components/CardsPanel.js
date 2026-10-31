@@ -9,14 +9,22 @@ function hasValue(value) {
     : Boolean(String(value || "").trim());
 }
 
+// Round 8 (31 Oct 2026, Damian): "Selected Area" and "Astute Franchise" are
+// redundant with the big title/name sitting right below them, and the card
+// reads cramped with every section prefixed by a small label on top of its
+// content. `heading` is now optional — pass "" (or omit it) to drop the
+// label row entirely while keeping the title/content underneath. Sections
+// that still want the label (e.g. "Relevant Astute Lines") are unaffected.
 function Section({ heading, children, value, className = "", count = null }) {
   if (!hasValue(value)) return null;
   return (
     <section className={`hs-card-section${className ? ` ${className}` : ""}`}>
-      <div className="hs-card-headingrow">
-        <h3 className="hs-card-heading">{heading}</h3>
-        {count !== null && <span className="hs-card-count">{count}</span>}
-      </div>
+      {(heading || count !== null) && (
+        <div className="hs-card-headingrow">
+          {heading && <h3 className="hs-card-heading">{heading}</h3>}
+          {count !== null && <span className="hs-card-count">{count}</span>}
+        </div>
+      )}
       {children || <div className="hs-card-copy">{value}</div>}
     </section>
   );
@@ -313,7 +321,8 @@ export default function CardsPanel({
   return (
     <aside className="hs-hsmap-panel" aria-label="Selection details">
       <div className="hs-card-toolbar">
-        <span className="hs-card-toolbar-label">Details</span>
+        {/* Round 8 (31 Oct 2026, Damian): "Details" label removed — the
+            card's own content already says what it is. */}
         <button
           type="button"
           className="hs-card-reset"
@@ -338,7 +347,7 @@ export default function CardsPanel({
           {(selection.kind === "hotspot" ||
             selection.kind === "subcategory") && (
             <Section
-              heading="Selected Area"
+              heading=""
               value={
                 selection.kind === "hotspot"
                   ? selection.hotspot.label
@@ -400,7 +409,9 @@ export default function CardsPanel({
 
           {manufacturer && (
             <>
-              <div className="hs-card-group-label hs-card-span">Target</div>
+              {/* Round 8 (31 Oct 2026, Damian): "Target" group label removed
+                  — the manufacturer card right below it makes the grouping
+                  obvious without it. */}
 
               {/* Round 6 (31 Oct 2026, Damian — rev05 redesign): single
                   continuous column, not the old col-left/col-right split.
@@ -430,7 +441,7 @@ export default function CardsPanel({
                       hs-card-copy), just nested inside one section so it
                       reads as a single block: name, headline, description. */}
                   <Section
-                    heading="Astute Franchise"
+                    heading=""
                     value={manufacturer.name}
                     className="hs-card-franchise"
                   >

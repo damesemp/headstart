@@ -1794,6 +1794,50 @@ body {
 }
 
 /* ==========================================================================
+   ROUND 8 (31 Oct 2026, Damian) —
+   1) "Details" (toolbar), "Selected Area", "Target" and "Astute Franchise"
+      labels removed in CardsPanel.js; the toolbar now holds only the reset
+      button, so it needs flex-end instead of space-between (space-between
+      on a single child left-aligns it).
+   2) Round 7's new classes (.hs-card-plainlist, .hs-card-docmeta) were
+      never covered by the ROUND 5g/5h "type up 20%" passes further down
+      this file, because those classes didn't exist yet — so Key Products
+      and the document caption were rendering noticeably smaller/tighter
+      than everything else on the same card (hs-card-copy/hs-card-numbered
+      sit at 15px/14.5px after that cascade; hs-card-plainlist was stuck at
+      12px). This brings them up to the same scale so the card reads as one
+      consistent size, not a cramped list bolted onto bigger text.
+   ========================================================================== */
+.hs-hsmap-panel .hs-card-toolbar {
+  justify-content: flex-end;
+}
+.hs-card-plainlist li {
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 7px 0;
+}
+.hs-card-docmeta {
+  font-size: 10px;
+}
+.hs-card-profile {
+  padding: 18px 20px;
+}
+.hs-card-profile .hs-card-section {
+  margin-top: 20px;
+  padding-top: 18px;
+}
+.hs-card-profile .hs-card-section.hs-card-fitbox {
+  margin-top: 18px;
+  padding: 14px 16px;
+}
+.hs-card-disclosure {
+  margin-top: 18px;
+}
+.hs-card-disclosure summary {
+  padding: 13px 0;
+}
+
+/* ==========================================================================
    ROUND 5 — CORRECTIONS (28 August)
    ========================================================================== */
 
