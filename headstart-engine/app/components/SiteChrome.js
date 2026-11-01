@@ -139,26 +139,11 @@ export function SiteFooter({ build }) {
               <br />
               GB2326213
             </p>
-            <p>
-              Astute House,
-              <br />
-              Rutherford Close
-              <br />
-              Stevenage,
-              <br />
-              Hertfordshire, SG1 2EF,
-              <br />
-              United Kingdom
-            </p>
-            <p>
-              <a
-                href={`${NEW}/contact-us/`}
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                Contact Us
-              </a>
-            </p>
+            {/* REMOVED (1 Nov 2026, Damian): postal address block
+                (Astute House, Rutherford Close, Stevenage...) and the
+                "Contact Us" link paragraph dropped from the footer to cut
+                its depth — the Make Enquiry link in the brand bar above
+                already covers contact. */}
           </div>
 
           {FOOTER_COLUMNS.map((column) => (
