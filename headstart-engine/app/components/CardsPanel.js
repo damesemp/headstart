@@ -291,20 +291,12 @@ export default function CardsPanel({
     subcategoryNextActions ||
     selection?.sharedNextActions ||
     "";
-  // FIX (5 Oct 2026): for a subcategory selection, the subcategory name is
-  // already shown as the card's own "Selected Area" heading above. Repeating
-  // "category · subcategory" here just restated the same subcategory a
-  // second time in smaller type. Show only the parent category on this
-  // line; the direct-manufacturer path (no "Selected Area" heading above
-  // it) keeps the full category · subcategory breadcrumb, since nothing
-  // else on the card states the subcategory there.
-  const categoryLine = manufacturer
-    ? selection?.kind === "subcategory"
-      ? selection.category
-      : [manufacturer.linecardCategory, ...(manufacturer.subcategory || [])]
-          .filter(Boolean)
-          .join(" · ")
-    : "";
+  // REMOVED (1 Nov 2026, Damian): the "category · subcategory" breadcrumb
+  // line (e.g. "Optoelectronics, Displays, HMI · Displays & Microdisplays")
+  // is dropped from the card entirely — Damian's instruction was to exclude
+  // it from showing, not just restyle it. manufacturer.linecardCategory /
+  // .subcategory and selection.category are untouched in the data model,
+  // just not read here any more.
   // 1 Sep 2026 — card shows the short description only. Long Description is
   // no longer pulled in; kept in Airtable/the data model, just not rendered.
   const details = manufacturer
@@ -377,7 +369,7 @@ export default function CardsPanel({
               heading="Relevant Astute Lines"
               value={manufacturerEntries}
               count={manufacturerEntries.length}
-              className="hs-card-span"
+              className="hs-card-lines hs-card-span"
             >
               {/* 1 Sep 2026 — Embedded PC's subcategory selection used to
                   render this as a plain comma-separated line while every
@@ -446,9 +438,6 @@ export default function CardsPanel({
                     className="hs-card-franchise"
                   >
                     <div className="hs-card-title">{manufacturer.name}</div>
-                    {categoryLine && (
-                      <div className="hs-card-category">{categoryLine}</div>
-                    )}
                     {hasValue(manufacturer.headline) && (
                       <div className="hs-card-headline-row">
                         {manufacturer.logoUrl && (
