@@ -159,8 +159,23 @@ export default function EmbeddedPCMap({ data, selectedManufacturer, onSelectManu
           setAnchor(isAnchor ? null : name);
         }}
       >
-        <div className="hs-pc-box-head">
+        <div
+          className="hs-pc-box-head"
+          role="button"
+          tabIndex={0}
+          aria-expanded={isAnchor}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();
+            e.stopPropagation();
+            clearSelection();
+            setAnchor(isAnchor ? null : name);
+          }}
+        >
           <h3>{name}</h3>
+          <span className="hs-pc-indicator" aria-hidden="true">
+            {isAnchor ? "−" : "+"}
+          </span>
           <p>{c ? c.count : 0} franchises</p>
         </div>
         <div className="hs-pc-chips">
