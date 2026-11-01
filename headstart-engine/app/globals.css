@@ -2196,12 +2196,20 @@ body {
   background: var(--hs-bar);
   color: #d6d6d3;
 }
+/* ROUND 13 (1 Nov 2026, Damian) — footer depth halved, verbatim instruction:
+   "taking that out will give more space and close the line spacing on the
+   rest of the footer so we halve the footer depth". Address block + "Contact
+   Us" link paragraph removed from the Contact Us column in SiteChrome.js
+   (Make Enquiry in the brand bar already covers contact). Every
+   vertical-depth property here — section padding, column gap, paragraph/
+   heading/list-item margins, line-height, legal-bar height — cut roughly in
+   half; horizontal padding/gap and all font-sizes/colors are unchanged. */
 .hs-footer-main {
-  padding: 48px 30px 40px;
+  padding: 24px 30px 20px;
 }
 .hs-footer-cols {
   align-items: flex-start;
-  gap: 56px;
+  gap: 28px;
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr));
 }
@@ -2211,16 +2219,16 @@ body {
   width: 112px;
 }
 .hs-footer-brand p {
-  margin: 18px 0 0;
+  margin: 10px 0 0;
   max-width: 30ch;
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.35;
   color: #b9b9b6;
 }
 .hs-footer-social {
   display: flex;
   gap: 14px;
-  margin-top: 22px;
+  margin-top: 12px;
   color: #b9b9b6;
 }
 .hs-footer-social a {
@@ -2231,15 +2239,15 @@ body {
   color: #ffffff;
 }
 .hs-footer-col h2 {
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   font-size: 14.5px;
   font-weight: 700;
   color: #ffffff;
 }
 .hs-footer-col p {
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.35;
   color: #b9b9b6;
 }
 .hs-footer-col ul {
@@ -2248,7 +2256,7 @@ body {
   list-style: none;
 }
 .hs-footer-col li {
-  margin: 0 0 10px;
+  margin: 0 0 5px;
 }
 .hs-footer-col a {
   font-size: 12.5px;
@@ -2264,7 +2272,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  height: 52px;
+  height: 32px;
   padding: 0 30px;
   border-top: 1px solid rgba(255, 255, 255, 0.14);
   font-size: 12.5px;
@@ -2503,14 +2511,20 @@ body {
   }
 }
 
-/* The cards panel scales with the application rather than the viewport: never
-   narrower than 400, never wider than 668, and 42% of the app in between. */
+/* ROUND 13 (1 Nov 2026, Damian) — viewing pane widened, cards panel narrowed:
+   left (map) 70% / right (cards) 30%, verbatim instruction. Was 42%/668px
+   max; floor and ceiling scaled down proportionally (400->360, 668->480) so
+   the panel still clamps sensibly at the extremes rather than overshooting
+   30% on a very wide or very narrow app frame. Below 1199px the cards panel
+   leaves the grid entirely and becomes the overlay drawer sized by
+   --hs-card-w (unchanged by this round — see the max-width:1199px block
+   further down). */
 .hs-hsmap-layout {
-  grid-template-columns: minmax(0, 1fr) clamp(400px, 42%, 668px);
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 30%, 480px);
 }
 @media (max-width: 1599px) {
   .hs-hsmap-layout {
-    grid-template-columns: minmax(0, 1fr) clamp(400px, 42%, 668px);
+    grid-template-columns: minmax(0, 1fr) clamp(360px, 30%, 480px);
   }
 }
 
