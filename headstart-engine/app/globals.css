@@ -1979,15 +1979,36 @@ body {
 .hs-hsmap-panel .hs-card-section {
   margin-bottom: 10px; /* top-level tile gap, was 8px */
 }
-.hs-hsmap-panel .hs-card-profile .hs-card-section {
-  margin-top: 24px; /* was 20px */
-  padding-top: 22px; /* was 18px */
-}
-.hs-hsmap-panel .hs-card-profile .hs-card-section.hs-card-fitbox {
-  margin-top: 22px; /* was 18px */
-}
 .hs-hsmap-panel .hs-card-disclosure {
   margin-top: 22px; /* was 18px */
+}
+
+/* ==========================================================================
+   ROUND 11 (1 Nov 2026, Damian) — the gap above the manufacturer name was
+   measured live at 64px (profile padding-top 18 + the first section's own
+   margin-top 24 + padding-top 22 = 64). The 24/22 should never have reached
+   the first section at all — `.hs-card-profile .hs-card-section:first-child`
+   (original Round 5/7 rule, earlier in this file) zeroes exactly that, but
+   it and Round 10's `.hs-hsmap-panel .hs-card-profile .hs-card-section` rule
+   both land at specificity (0,0,3,0), and Round 10's came later in the file,
+   so it won on source order alone and silently cancelled the zero-out —
+   replacing Round 10's rule here (rather than leaving both in the file)
+   with a `:not(:first-child)` version raises it to (0,0,4,0): it still wins
+   for every other section, but no longer fights the first-child rule, which
+   goes back to applying uncontested. On top of restoring that zero, Damian
+   also asked to cut the gap 50-60% further: profile padding-top 18px -> 8px
+   (56% cut) is the only remaining source of the gap once the first section
+   is correctly at margin/padding-top 0.
+   ========================================================================== */
+.hs-hsmap-panel .hs-card-profile .hs-card-section:not(:first-child) {
+  margin-top: 24px; /* was 20px pre-Round-10 */
+  padding-top: 22px; /* was 18px pre-Round-10 */
+}
+.hs-hsmap-panel .hs-card-profile .hs-card-section.hs-card-fitbox {
+  margin-top: 22px; /* was 18px pre-Round-10; fitbox is never first-child */
+}
+.hs-hsmap-panel .hs-card-profile {
+  padding-top: 8px; /* was 18px */
 }
 
 /* ==========================================================================
