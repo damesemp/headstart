@@ -2105,6 +2105,40 @@ body {
 }
 
 /* ==========================================================================
+   ROUND 12 (1 Nov 2026, Damian) — body text on the manufacturer card cut
+   ~20% in font-size and line-height, titles/headings untouched. "Body text"
+   is the card's flowing/list content: the name's description and the "Why
+   This Manufacturer May Fit" paragraph (both render through the same
+   .hs-card-copy, see WhyThisFits/CardsPanel.js), Key Products
+   (.hs-card-plainlist), Follow-Up Questions/Next Steps (.hs-card-numbered,
+   via NumberedLines) and the manufacturer's website link text
+   (.hs-linkrow-text). Left alone as titles/labels: manufacturer name
+   (.hs-card-title / .hs-card-franchise .hs-card-title), the headline
+   (.hs-card-headline-text), every all-caps section label (.hs-card-heading)
+   and the small uppercase meta labels (.hs-linkrow-meta, .hs-card-docmeta,
+   .hs-card-count) — all of which read as structural labels, not content.
+   Industries was removed from the card the same day (see CardsPanel.js),
+   so there is no .hs-card-copy rule to add for it. */
+.hs-hsmap-panel .hs-card-profile .hs-card-copy {
+  font-size: 15.2px; /* was 19px (Round 10) */
+  line-height: 1.32; /* was 1.65 (Round 9) */
+}
+.hs-hsmap-panel .hs-card-plainlist li {
+  font-size: 14.4px; /* was 18px (Round 10) */
+  line-height: 1.28; /* was 1.6 (Round 8) */
+}
+.hs-hsmap-panel .hs-card-numbered li {
+  font-size: 14px; /* was 17.5px (Round 10) */
+  line-height: 1.2; /* was 1.5 (base) */
+}
+.hs-hsmap-panel .hs-card-number {
+  font-size: 12px; /* was 15px (Round 10) */
+}
+.hs-hsmap-panel .hs-linkrow-text {
+  font-size: 14.4px; /* was 18px (Round 10) */
+}
+
+/* ==========================================================================
    ROUND 5 — CORRECTIONS (28 August)
    ========================================================================== */
 

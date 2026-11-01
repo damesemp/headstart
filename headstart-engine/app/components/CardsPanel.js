@@ -502,22 +502,14 @@ export default function CardsPanel({
                       is dropped. */}
                   <FollowUpQuestions nextActions={nextActions} />
 
-                  {/* Round 7: Industries renders as a single comma-separated
-                      line (JoinedList), not chips, matching the rev05
-                      reference markup exactly. */}
-                  {hasValue(manufacturer.industries) && (
-                    <details
-                      className="hs-card-disclosure"
-                      name={`mfg-${manufacturer.id}`}
-                    >
-                      <summary className="hs-card-heading">
-                        Industries
-                      </summary>
-                      <div className="hs-card-disclosure-body">
-                        <JoinedList value={manufacturer.industries} />
-                      </div>
-                    </details>
-                  )}
+                  {/* REMOVED (1 Nov 2026, Damian): Industries section
+                      dropped from the manufacturer card entirely, per
+                      instruction. manufacturer.industries is left untouched
+                      in Airtable/the data model, just not read here — same
+                      convention as Quality & Certifications and Product
+                      Lifecycle below. JoinedList (above) is now unused by
+                      this file but left in place in case another section
+                      wants the same comma-joined-line treatment later. */}
 
                   {/* REMOVED (5 Oct 2026, Damian): Quality & Certifications
                       section dropped from the card entirely — not required
