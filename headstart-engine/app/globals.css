@@ -1879,6 +1879,118 @@ body {
 }
 
 /* ==========================================================================
+   ROUND 10 (1 Nov 2026, Damian) —
+   1) Category/subcategory breadcrumb line removed from the card in
+      CardsPanel.js (it no longer renders at all — the Round 9
+      .hs-card-category rule above is now dead CSS, left in place rather
+      than hunted down, harmless since nothing emits that class any more).
+   2) Every font size on the card up 20% on top of Round 8/9's values,
+      EXCEPT the "Relevant Astute Lines" box (its heading, count badge and
+      manufacturer chips) — Damian's instruction, verbatim: "make all the
+      fonts 20% larger except those in the relevant astute lines box".
+      `.hs-card-chip`/`.hs-card-chips` are only ever used inside that box,
+      so they're excluded by simply not touching them here. `.hs-card-
+      heading`/`.hs-card-count` ARE shared with every other section label
+      on the card, so they're bumped generally below, then corrected back
+      to their pre-Round-10 size specifically inside that box via the new
+      `.hs-card-lines` class added to its <Section> in CardsPanel.js —
+      three-class selector beats the two-class general-bump rule on
+      specificity, no !important needed.
+   3) Disclosure +/- expand glyph doubled (15px -> 30px), verbatim: "make
+      the + signs that expand the boxes double the size".
+   4) Extra spacing requested on top of #2, verbatim: "put another 20%
+      spacing / line height between the titles" — applied to every
+      title-type element's line-height/margin (manufacturer name, hotspot
+      title, headline, section-heading margin) and to the gaps between the
+      card's top-level tiles/sections, i.e. the spacing that sits around
+      those titles, not body-copy line-height.
+   ========================================================================== */
+
+/* --- #2: font sizes, +20% on Round 8/9 values, card-wide ---------------- */
+.hs-hsmap-panel .hs-card-title {
+  font-size: 26px;
+}
+.hs-hsmap-panel .hs-card-franchise .hs-card-title {
+  font-size: 26.5px;
+}
+.hs-hsmap-panel .hs-card-headline-text {
+  font-size: 20px;
+}
+.hs-hsmap-panel .hs-card-profile .hs-card-copy {
+  font-size: 19px;
+}
+.hs-hsmap-panel .hs-card-heading {
+  font-size: 14.5px;
+}
+.hs-hsmap-panel .hs-card-unmapped {
+  font-size: 21.5px;
+}
+.hs-hsmap-panel .hs-card-plainlist li {
+  font-size: 18px;
+}
+.hs-hsmap-panel .hs-card-docmeta {
+  font-size: 12px;
+}
+.hs-hsmap-panel .hs-card-numbered li {
+  font-size: 17.5px;
+}
+.hs-hsmap-panel .hs-card-number {
+  font-size: 15px;
+}
+.hs-hsmap-panel .hs-linkrow-text {
+  font-size: 18px;
+}
+.hs-hsmap-panel .hs-linkrow-meta {
+  font-size: 14.5px;
+}
+.hs-hsmap-panel .hs-card-reset {
+  font-size: 18px;
+}
+
+/* --- #2 exclusion: Relevant Astute Lines box stays at its pre-Round-10
+   size (heading label + count badge; chips were never touched above) --- */
+.hs-hsmap-panel .hs-card-lines .hs-card-heading,
+.hs-hsmap-panel .hs-card-lines .hs-card-count {
+  font-size: 12px;
+}
+
+/* --- #3: double the disclosure +/- glyph -------------------------------- */
+.hs-hsmap-panel .hs-card-disclosure summary::after {
+  font-size: 30px;
+}
+
+/* --- #4: +20% more spacing/line-height around titles -------------------- */
+.hs-hsmap-panel .hs-card-title {
+  line-height: 1.4; /* hotspot title: was 1.16 */
+}
+.hs-hsmap-panel .hs-card-franchise .hs-card-title {
+  line-height: 1.5; /* was 1.25 */
+  margin-bottom: 5px; /* was 4px */
+}
+.hs-hsmap-panel .hs-card-headline-text {
+  line-height: 1.7; /* was 1.4 */
+}
+.hs-hsmap-panel .hs-card-headline-row {
+  margin-bottom: 10px; /* was 8px */
+}
+.hs-hsmap-panel .hs-card-heading {
+  margin-bottom: 7px; /* was 6px, applies to every section label */
+}
+.hs-hsmap-panel .hs-card-section {
+  margin-bottom: 10px; /* top-level tile gap, was 8px */
+}
+.hs-hsmap-panel .hs-card-profile .hs-card-section {
+  margin-top: 24px; /* was 20px */
+  padding-top: 22px; /* was 18px */
+}
+.hs-hsmap-panel .hs-card-profile .hs-card-section.hs-card-fitbox {
+  margin-top: 22px; /* was 18px */
+}
+.hs-hsmap-panel .hs-card-disclosure {
+  margin-top: 22px; /* was 18px */
+}
+
+/* ==========================================================================
    ROUND 5 — CORRECTIONS (28 August)
    ========================================================================== */
 
