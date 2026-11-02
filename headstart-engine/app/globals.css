@@ -2863,3 +2863,58 @@ body {
   color: var(--hs-ink);
   line-height: 1.35;
 }
+/* ==========================================================================
+   FIX (2 Nov 2026, Damian — top nav bar wrapping)
+   ==========================================================================
+   Round 5h's "type up 20%" (line ~2758, above) bumped .hs-crumb and
+   .hs-hsmap-vartab from 10.5px to 12.5px without resizing the appbar layout
+   that was tuned for the smaller type, and .hs-hsmap-varrow still carries
+   its original pre-Round-5c flex-wrap: wrap (line ~320, left over from when
+   the Type tabs were pills, not underlined tabs). Together, on anything
+   narrower than a wide desktop the breadcrumb text wraps onto a second line
+   and/or the tab row drops below it, breaking the single top bar.
+   Fix (agreed approach: truncate the breadcrumb, shrink the tabs — not a
+   scroll strip or an overflow "+N" menu): the breadcrumb never wraps and
+   each segment truncates with an ellipsis if the trail doesn't fit; the tab
+   row never wraps either — tabs are smaller and tighter-packed, and a
+   single long tab label truncates too, rather than the row breaking onto a
+   new line. */
+.hs-crumb {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+.hs-crumb span {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex-shrink: 1;
+}
+.hs-crumb i {
+  flex-shrink: 0;
+}
+.hs-crumb b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  display: inline-block;
+}
+.hs-hsmap-varrow {
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  gap: 14px;
+}
+.hs-hsmap-vartab,
+.hs-hsmap-vartab.hs-on {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+}
